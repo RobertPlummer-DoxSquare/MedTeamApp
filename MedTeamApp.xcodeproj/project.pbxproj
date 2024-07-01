@@ -71,7 +71,7 @@
 		AC50FDCA2C2D098C007EB55B /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
 		AC50FDCD2C2D2E53007EB55B /* SessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionViewModel.swift; sourceTree = "<group>"; };
 		AC5203392C312CCA00BDBA5E /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		AC9F40C32C2A081800E52D4E /* MedTeam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MedTeam.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC9F40C32C2A081800E52D4E /* MedTeamApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MedTeamApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC9F40C62C2A081800E52D4E /* MedTeamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedTeamApp.swift; sourceTree = "<group>"; };
 		AC9F40C82C2A081800E52D4E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AC9F40CA2C2A081B00E52D4E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -165,7 +165,7 @@
 		AC9F40C42C2A081800E52D4E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AC9F40C32C2A081800E52D4E /* MedTeam.app */,
+				AC9F40C32C2A081800E52D4E /* MedTeamApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -341,9 +341,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AC9F40C22C2A081800E52D4E /* MedTeam */ = {
+		AC9F40C22C2A081800E52D4E /* MedTeamApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AC9F40D12C2A081B00E52D4E /* Build configuration list for PBXNativeTarget "MedTeam" */;
+			buildConfigurationList = AC9F40D12C2A081B00E52D4E /* Build configuration list for PBXNativeTarget "MedTeamApp" */;
 			buildPhases = (
 				AC9F40BF2C2A081800E52D4E /* Sources */,
 				AC9F40C02C2A081800E52D4E /* Frameworks */,
@@ -353,7 +353,7 @@
 			);
 			dependencies = (
 			);
-			name = MedTeam;
+			name = MedTeamApp;
 			packageProductDependencies = (
 				AC9F41012C2A5EB100E52D4E /* FirebaseAnalytics */,
 				AC9F41032C2A5EB100E52D4E /* FirebaseAnalyticsOnDeviceConversion */,
@@ -385,7 +385,7 @@
 				AC9F41372C2A5EB100E52D4E /* FirebaseVertexAI-Preview */,
 			);
 			productName = MedTeam;
-			productReference = AC9F40C32C2A081800E52D4E /* MedTeam.app */;
+			productReference = AC9F40C32C2A081800E52D4E /* MedTeamApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -403,7 +403,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AC9F40BE2C2A081700E52D4E /* Build configuration list for PBXProject "MedTeam" */;
+			buildConfigurationList = AC9F40BE2C2A081700E52D4E /* Build configuration list for PBXProject "MedTeamApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -419,7 +419,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AC9F40C22C2A081800E52D4E /* MedTeam */,
+				AC9F40C22C2A081800E52D4E /* MedTeamApp */,
 			);
 		};
 /* End PBXProject section */
@@ -652,7 +652,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AC9F40BE2C2A081700E52D4E /* Build configuration list for PBXProject "MedTeam" */ = {
+		AC9F40BE2C2A081700E52D4E /* Build configuration list for PBXProject "MedTeamApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AC9F40CF2C2A081B00E52D4E /* Debug */,
@@ -661,7 +661,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AC9F40D12C2A081B00E52D4E /* Build configuration list for PBXNativeTarget "MedTeam" */ = {
+		AC9F40D12C2A081B00E52D4E /* Build configuration list for PBXNativeTarget "MedTeamApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AC9F40D22C2A081B00E52D4E /* Debug */,

@@ -6,19 +6,38 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct ContentView: View {
+    @StateObject var authService = AuthService.shared
+    @State private var showHamburger = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        GeometryReader { geometry in
+            ZStack {
+                Color(.systemBlue)
+                    .frame(height: geometry.size.height * 0.4)
+                    .edgesIgnoringSafeArea(.top)
+                
+                if authService.userSession != nil {
+                    MainTabView()
+                        .environmentObject(authService)
+                    
+                    if showHamburger {
+                        Hamburger(showHamburger: $showHamburger)
+                            .environmentObject(authService)
+                    }
+                } else {
+                    LoginView()
+                        .environmentObject(authService)
+                }
+            }
         }
-        .padding()
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }

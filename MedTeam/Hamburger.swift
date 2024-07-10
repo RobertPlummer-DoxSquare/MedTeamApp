@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Hamburger: View {
     @Binding var showHamburger: Bool
+    @Binding var showSettingsView: Bool
     @State private var showSideMenu = true
     @EnvironmentObject var authService: AuthService
 
@@ -22,9 +23,10 @@ struct Hamburger: View {
                     TabButton(title: "Home", image: "Profile") {
                         showHamburger = false
                     }
-//                    TabButton(title: "Login", image: "Profile") {
-//                        self.showSideMenu = true
-//                    }
+                    TabButton(title: "Setting", image: "Gear") {
+                        showHamburger = false
+                        showSettingsView = true
+                    }
                     TabButton(title: "Logout", image: "Profile") {
                         authService.signOut()
                         showHamburger = false
@@ -49,7 +51,6 @@ struct Hamburger: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
-
 struct HamburgerButton: View {
     @Binding var showMenu: Bool
 

@@ -34,6 +34,7 @@ struct FeedView: View {
     @State private var selectedHospital: Hospital?
     @State private var navigateToUserDataView = false
     @State private var showMenu = false
+    @State private var showSettingsView = false
 
     let hospitals: [Hospital] = [
         Hospital(name: "Moses", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Administrator", "Receptionist"]),
@@ -54,25 +55,27 @@ struct FeedView: View {
                 .disabled(showMenu)
 
                 if showMenu {
-                    Hamburger(showHamburger: $showMenu)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.75))
-                        .edgesIgnoringSafeArea(.all)
-                }
+                                  Hamburger(showHamburger: $showMenu, showSettingsView: $showSettingsView)
+                                      .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                      .background(Color.black.opacity(0.75))
+                                      .edgesIgnoringSafeArea(.all)
+                              }
 
-                Button(action: { showMenu.toggle() }) {
-                    Image(systemName: "line.horizontal.3")
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black)
-                        .cornerRadius(12)
-                }
-                .position(x: 40, y: 40) // Adjust the position to suit your layout
-            }
-        }
-    }
-}
-
+                              Button(action: { showMenu.toggle() }) {
+                                  Image(systemName: "line.horizontal.3")
+                                      .foregroundColor(.white)
+                                      .padding()
+                                      .background(Color.black)
+                                      .cornerRadius(12)
+                              }
+                              .position(x: 40, y: 40) // Adjust the position to suit your layout
+                          }
+                      }
+                      .sheet(isPresented: $showSettingsView) {
+                          Settings()
+                      }
+                  }
+              }
 struct HospitalSelectionView: View {
     @Binding var selectedHospital: Hospital?
     @State private var navigateToSurgeryServiceSelection = false

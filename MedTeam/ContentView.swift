@@ -11,6 +11,7 @@ import FirebaseAuth
 struct ContentView: View {
     @StateObject var authService = AuthService.shared
     @State private var showHamburger = false
+    @State private var showSettingsView = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -18,13 +19,13 @@ struct ContentView: View {
                 Color(.systemBlue)
                     .frame(height: geometry.size.height * 0.4)
                     .edgesIgnoringSafeArea(.top)
-                
+
                 if authService.userSession != nil {
                     MainTabView()
                         .environmentObject(authService)
-                    
+
                     if showHamburger {
-                        Hamburger(showHamburger: $showHamburger)
+                        Hamburger(showHamburger: $showHamburger, showSettingsView: $showSettingsView)
                             .environmentObject(authService)
                     }
                 } else {
@@ -32,6 +33,9 @@ struct ContentView: View {
                         .environmentObject(authService)
                 }
             }
+        }
+        .sheet(isPresented: $showSettingsView) {
+            Settings()
         }
     }
 }
@@ -41,3 +45,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+

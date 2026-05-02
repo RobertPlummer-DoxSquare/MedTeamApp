@@ -1,4 +1,4 @@
-    //
+//
 //  LoginView.swift
 //  MedTeam
 //
@@ -12,132 +12,91 @@ let backgroundColor = Color.black
 
 struct LoginView: View {
     @StateObject var viewModel = LoginViewModel()
-    @State private var email = ""
-    @State private var password = ""
-    
-    @State private var showFeedView = false
     @State private var showAlert = false
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black
-                .ignoresSafeArea()
+                Color.black.ignoresSafeArea()
 
-                VStack {
+                VStack(spacing: 0) {
                     Spacer()
-                    
+
                     Image("MedIcon")
                         .resizable()
-                        .scaledToFit()
-                        .frame(width: 250, height: 250)
-                        .padding()
-                    
-//                    Spacer()
+                        .scaledToFill()
+                        .frame(width: 72, height: 72)
+                        .clipShape(Circle())
+                        .padding(.bottom, 16)
 
-                    TextField("Enter your email", text: $viewModel.email)
+                    Text("MedTeam")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.bottom, 48)
+
+                    TextField("Email", text: $viewModel.email)
                         .autocapitalization(.none)
+                        .keyboardType(.emailAddress)
                         .modifier(TextFieldModifier())
-                        .background(Color.black)
-                        .foregroundColor(.gray)
+                        .padding(.bottom, 12)
 
-                    SecureField("Enter your password", text: $viewModel.password)
+                    SecureField("Password", text: $viewModel.password)
                         .modifier(TextFieldModifier())
-                        .background(Color.black)
-                        .foregroundColor(.gray)
-                    
-                    NavigationLink {
-                        Text("Forgot password")
-                    } label: {
-                        Text("Forgot password")
+
+                    Button {} label: {
+                        Text("Forgot password?")
                             .font(.footnote)
-                            .fontWeight(.semibold)
-                            .padding(.vertical)
-                            .padding(.trailing, 28)
-                            .foregroundColor(.white)
+                            .foregroundColor(Color(white: 0.45))
                             .frame(maxWidth: .infinity, alignment: .trailing)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 12)
                     }
 
-//                    Spacer()
-//
+                    Spacer().frame(height: 32)
+
                     Button {
                         Task {
                             await viewModel.login()
-                            if viewModel.isAuthenticated {
-                                print("Login successful, routing to FeedView")
-                                ContentView()
-                            } else {
-                                print("Login failed, showing alert")
-                                showAlert = true
-                            }
+                            if !viewModel.isAuthenticated { showAlert = true }
                         }
                     } label: {
                         Text("Log In")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .frame(width: 325, height: 44)
-                            .background(.blue)
-                            .cornerRadius(8)
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .padding(.horizontal, 24)
                     }
-//
-                    Divider()
-//
+                    .alert("Login Failed", isPresented: $showAlert) {
+                        Button("OK", role: .cancel) {}
+                    } message: {
+                        Text(viewModel.loginError ?? "Please check your credentials and try again.")
+                    }
+
                     Spacer()
-                    
+
                     NavigationLink {
                         RegistrationView()
                             .navigationBarBackButtonHidden(true)
                     } label: {
-                        HStack(spacing: 3) {
-                            Text("Don't have an account? ")
-                            
+                        HStack(spacing: 4) {
+                            Text("Don't have an account?")
+                                .foregroundColor(Color(white: 0.45))
                             Text("Sign Up")
                                 .fontWeight(.semibold)
-                            
+                                .foregroundColor(.white)
                         }
-                        .foregroundColor(.white)
                         .font(.footnote)
                     }
-                    .padding(.vertical, 16)
-                    
-//
-//                    Button(action: {
-//                        do {
-//                            try Auth.auth().signOut()
-//                            print("User logged out successfully")
-//                        } catch {
-//                            print("Error signing out: \(error.localizedDescription)")
-//                        }
-//                    }) {
-//                        Text("Logout")
-//                            .font(.subheadline)
-//                            .fontWeight(.semibold)
-//                            .foregroundColor(.white)
-//                            .frame(width: 352, height: 44)
-//                            .background(.red)
-//                            .cornerRadius(8)
-//                    }
-//
-//                }
-//                .padding()
-//                .alert(isPresented: $showAlert) {
-//                    Alert(
-//                        title: Text("Login Error"),
-//                        message: Text(viewModel.loginError ?? "Unknown error"),
-//                        dismissButton: .default(Text("OK"))
-//                    )
-//                }
-//
-//                NavigationLink(
-////                    destination: FeedView()
-//                        .navigationBarBackButtonHidden(true),
-//                    isActive: $showFeedView
-//                ) {
-//                    EmptyView()
+                    .padding(.bottom, 32)
                 }
             }
             .navigationBarHidden(true)
+            .colorScheme(.dark)
         }
     }
 }
@@ -156,7 +115,6 @@ extension Color {
               let alphaValue = Double(alpha) else {
             return Color.clear
         }
-
         return Color(red: redValue, green: greenValue, blue: blueValue, opacity: alphaValue)
     }
 }

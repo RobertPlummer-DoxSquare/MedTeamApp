@@ -22,6 +22,10 @@
 
 import SwiftUI
 import Firebase
+import FirebaseAuth
+import FirebaseFirestore
+
+// MARK: - Data Models
 
 struct Hospital: Hashable {
     let id = UUID().uuidString
@@ -30,9 +34,14 @@ struct Hospital: Hashable {
     var positions: [String]
 }
 
+// MARK: - Views
+
 struct FeedView: View {
     @State private var selectedHospital: Hospital?
-    @State private var navigateToUserDataView = false
+    @State private var selectedServices: Set<SurgeryService> = []
+    @State private var navigateToSurgeryServiceSelection = false
+    @State private var navigateToHospitalSelection = false
+    @State private var navigateToPositionSelection = false
     @State private var showMenu = false
     @State private var showSettingsView = false
 
@@ -43,125 +52,159 @@ struct FeedView: View {
         Hospital(name: "Wakefield", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Administrator", "Receptionist"]),
         Hospital(name: "North Central Bronx", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Administrator", "Receptionist"])
     ]
-
+    
     var body: some View {
         NavigationView {
             ZStack {
                 VStack {
-                    HospitalSelectionView(selectedHospital: $selectedHospital, hospitals: hospitals)
+                    // Show SurgeryServiceSelectionView first
+                    if !navigateToSurgeryServiceSelection {
+                        SurgeryServiceSelectionView(
+                            selectedServices: $selectedServices,
+                            selectedHospital: $selectedHospital,
+                            navigateToHospitalSelection: $navigateToHospitalSelection // Pass the binding here
+                        )
+                        .transition(.slide)
+                    }
+                    
+                    // Show HospitalSelectionView after SurgeryServiceSelection
+                    if navigateToSurgeryServiceSelection && !navigateToHospitalSelection {
+                        HospitalSelectionView(selectedHospital: $selectedHospital, hospitals: hospitals)
+                            .transition(.slide)
+                    }
+                    
+                    // Show PositionSelectionView after HospitalSelection
+                    if navigateToHospitalSelection && !navigateToPositionSelection {
+                        PositionSelectionView(selectedHospital: $selectedHospital, selectedServices: $selectedServices)
+                            .transition(.slide)
+                    }
                 }
                 .padding()
                 .offset(x: showMenu ? 330 : 0)
                 .disabled(showMenu)
 
                 if showMenu {
-                                  Hamburger(showHamburger: $showMenu, showSettingsView: $showSettingsView)
-                                      .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                      .background(Color.black.opacity(0.75))
-                                      .edgesIgnoringSafeArea(.all)
-                              }
+                    Hamburger(showHamburger: $showMenu, showSettingsView: $showSettingsView)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black.opacity(0.75))
+                        .edgesIgnoringSafeArea(.all)
+                }
 
-                              Button(action: { showMenu.toggle() }) {
-                                  Image(systemName: "line.horizontal.3")
-                                      .foregroundColor(.white)
-                                      .padding()
-                                      .background(Color.black)
-                                      .cornerRadius(12)
-                              }
-                              .position(x: 40, y: 40) // Adjust the position to suit your layout
-                          }
-                      }
-                      .sheet(isPresented: $showSettingsView) {
-                          Settings()
-                      }
-                  }
-              }
+                Button(action: { showMenu.toggle() }) {
+                    Image(systemName: "line.horizontal.3")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black)
+                        .cornerRadius(12)
+                }
+                .position(x: 40, y: 40)
+            }
+        }
+        .sheet(isPresented: $showSettingsView) {
+            Settings()
+        }
+    }
+}
+
+
 struct HospitalSelectionView: View {
     @Binding var selectedHospital: Hospital?
-    @State private var navigateToSurgeryServiceSelection = false
-    
+    @State private var navigateToPositionSelection = false
+
     var hospitals: [Hospital]
-    
+
     var body: some View {
-        VStack {
-            
-            Spacer()
-            Text("Swipe for more hospitals")
-                .font(.headline)
-                .padding(.bottom, 10)
-            
-            
-            TabView {
+        ScrollView {
+            VStack(spacing: 10) {
                 ForEach(hospitals, id: \.self) { hospital in
-                    HospitalIconView(hospital: hospital, selectedHospital: $selectedHospital, navigateToSurgeryServiceSelection: $navigateToSurgeryServiceSelection)
-                        .tag(hospital)
-                
+                    Button(action: {
+                        selectedHospital = hospital
+                        navigateToPositionSelection = true
+                    }) {
+                        Text(hospital.name)
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }
                 }
             }
-            .tabViewStyle(PageTabViewStyle())
-            .background(
-                NavigationLink(
-                    destination: SurgeryServiceSelectionView(selectedServices: Binding.constant([]), selectedHospital: $selectedHospital),
-                    isActive: $navigateToSurgeryServiceSelection
-                ) {
-                    EmptyView()
-                }
-            )
+            .padding()
+        }
+        .background(
+            NavigationLink(
+                destination: PositionSelectionView(selectedHospital: $selectedHospital, selectedServices: .constant([])),
+                isActive: $navigateToPositionSelection
+            ) {
+                EmptyView()
+            }
+        )
+    }
+
+
+    // Function to save the selected hospital to Firebase
+    private func saveSelectedHospitalToFirebase(hospital: Hospital) {
+        guard let currentUserUID = Auth.auth().currentUser?.uid else {
+            print("User not logged in")
+            return
+        }
+
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(currentUserUID)
+
+        // Save the selected hospital name to Firestore
+        userRef.updateData([
+            "selectedHospital": hospital.name
+        ]) { error in
+            if let error = error {
+                print("Error saving selected hospital to Firestore: \(error.localizedDescription)")
+            } else {
+                print("Selected hospital saved successfully to Firestore")
+            }
         }
     }
 }
 
-struct HospitalIconView: View {
-    let hospital: Hospital
-    @Binding var selectedHospital: Hospital?
-    @Binding var navigateToSurgeryServiceSelection: Bool
-
-    @State private var isBarFloating = false // State variable to control the floating animation
-    @State private var isButtonFloating = false // State variable to control the button's floating animation
-
-    var body: some View {
-        VStack(spacing: 4) { // Adjust spacing between text and bar
-            Text(hospital.name)
-                .font(.title)
-//                .font(size: 60)
-                .padding(.vertical, 6) // Add vertical padding to create space around the text
-
-            // Floating green bar with rounded edges and animation
-//            RoundedRectangle(cornerRadius: 1) // Adjust corner radius to make edges round
-//                .fill(Color.black)
-//                .frame(height: 1) // Decrease the height of the bar to match the size of the text
-//                .padding(.horizontal, 16) // Add horizontal padding to match the text
-//                .offset(y: isBarFloating ? -1.5 : 0) // Offset the bar up by 1.5 points when isBarFloating is true
-//                .onAppear {
-//                    withAnimation(Animation.easeInOut(duration: 1.5).repeatForever()) {
-//                        self.isBarFloating = true // Start the floating animation
-//                    }
-//                }
-
-            // Floating animated button
-            Button(action: {
-                selectedHospital = hospital
-                navigateToSurgeryServiceSelection = true
-            }) {
-                Text("Select")
-                    .font(.headline)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 4)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .offset(y: isButtonFloating ? -20 : 0) // Offset the button up by 20 points when isButtonFloating is true
-            .onAppear {
-                withAnimation(Animation.easeInOut(duration: 1.5).repeatForever()) {
-                    self.isButtonFloating = true // Start the button's floating animation
-                }
-            }
-        }
-        .background(selectedHospital == hospital ? Color.blue.opacity(0.3) : Color.clear)
-        .cornerRadius(10)
-    }
-}
+//// MARK: - Helper Views
+//
+//struct Hamburger: View {
+//    @Binding var showHamburger: Bool
+//    @Binding var showSettingsView: Bool
+//    
+//    var body: some View {
+//        VStack {
+//            Button(action: {
+//                showSettingsView = true
+//                showHamburger = false
+//            }) {
+//                Text("Settings")
+//                    .font(.title)
+//                    .foregroundColor(.white)
+//                    .padding()
+//            }
+//            Spacer()
+//        }
+//        .padding(.top, 100)
+//    }
+//}
+//
+//struct Settings: View {
+//    var body: some View {
+//        Text("Settings View")
+//            .font(.largeTitle)
+//            .padding()
+//    }
+//}
+//
+//// MARK: - Preview
+//
+//struct ContentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        FeedView()
+//    }
+//}
 
 
 import SwiftUI
@@ -173,9 +216,12 @@ struct SurgeryService: Identifiable, Hashable {
     var name: String
 }
 
+import SwiftUI
+
 struct SurgeryServiceSelectionView: View {
     @Binding var selectedServices: Set<SurgeryService>
     @Binding var selectedHospital: Hospital?
+    @Binding var navigateToHospitalSelection: Bool // Used for triggering navigation
 
     let surgeryServices: [SurgeryService] = [
         SurgeryService(name: "Acute Care Surgery"),
@@ -193,40 +239,65 @@ struct SurgeryServiceSelectionView: View {
     ]
 
     var body: some View {
-        VStack {
-            Text("Select Your Surgery Service")
-                .font(.headline)
-                .fontWeight(.bold)
-                .padding(.top, 20)
-
-            Spacer()
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(surgeryServices, id: \.self) { service in
-                        ServiceView(service: service, selectedServices: $selectedServices, surgeryServices: surgeryServices)
-                    }
-                    .padding(.top, 20)
-                }
-                .padding(.horizontal)
-            }
-
-            Spacer()
-
-            NavigationLink(destination: PositionSelectionView(selectedHospital: $selectedHospital, selectedServices: $selectedServices)) {
-                Text("Next")
+        NavigationView {
+            VStack {
+                Text("Select Your Surgery Service")
+                    .font(.headline)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
+                    .padding(.top, 20)
+
+                Spacer()
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(surgeryServices, id: \.self) { service in
+                            ServiceView(service: service, selectedServices: $selectedServices, surgeryServices: surgeryServices)
+                        }
+                        .padding(.top, 20)
+                    }
+                    .padding(.horizontal)
+                }
+
+                Spacer()
+
+                Button(action: {
+                    // After user selects surgery services, navigate to the Hospital selection view
+                    navigateToHospitalSelection = true
+                }) {
+                    Text("Next")
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+                .padding()
             }
-            .padding()
+            .background(
+                // Wrap the navigation logic inside a NavigationLink
+                NavigationLink(
+                    destination: HospitalSelectionView(selectedHospital: $selectedHospital, hospitals: getHospitals()), // Pass hospitals to the destination view
+                    isActive: $navigateToHospitalSelection // When true, navigate to HospitalSelectionView
+                ) {
+                    EmptyView() // No visible link
+                }
+            )
         }
-        .navigationTitle("")
+    }
+
+    // Helper function to return the hospitals array
+    private func getHospitals() -> [Hospital] {
+        return [
+            Hospital(name: "Moses", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Administrator", "Receptionist"]),
+            Hospital(name: "Weiler", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Weiler", "Receptionist"]),
+            Hospital(name: "Jacobi", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Administrator", "Receptionist"]),
+            Hospital(name: "Wakefield", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Administrator", "Receptionist"]),
+            Hospital(name: "North Central Bronx", icon: "building", positions: ["Doctor", "Nurse", "Technician", "Administrator", "Receptionist"])
+        ]
     }
 }
+
 
 struct ServiceView: View {
     let service: SurgeryService
@@ -329,8 +400,14 @@ struct ServiceView: View {
 }
 
 struct SurgeryServiceSelectionView_Previews: PreviewProvider {
+    @State static var navigateToHospitalSelection = false // Add a state for the navigation flow
+    
     static var previews: some View {
-        SurgeryServiceSelectionView(selectedServices: .constant([]), selectedHospital: .constant(nil))
+        SurgeryServiceSelectionView(
+            selectedServices: .constant([]),
+            selectedHospital: .constant(nil),
+            navigateToHospitalSelection: $navigateToHospitalSelection // Pass the binding here
+        )
     }
 }
 

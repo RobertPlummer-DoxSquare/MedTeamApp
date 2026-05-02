@@ -25,12 +25,14 @@ class CurrentUserProfileViewModel: ObservableObject {
     private func setupSubscribers() {
         // Subscribe to changes in currentUser from UserService
         UserService.shared.$currentUser
+            .receive(on: RunLoop.main)
             .sink { [weak self] user in
                 self?.currentUser = user
             }
             .store(in: &cancellables)
     }
     
+    @MainActor
     private func loadImage() async {
         guard let item = selectedItem else { return }
         do {

@@ -10,50 +10,56 @@ import SwiftUI
 let backgroundF = Color.clear
 
 struct MainTabView: View {
-    init() {
-        // Hide the tab bar border/frame using UIKit
-        let appearance = UITabBarAppearance()
-        appearance.backgroundImage = UIImage()
-        appearance.shadowImage = UIImage()
-        UITabBar.appearance().standardAppearance = appearance
-        
-        UINavigationBar.appearance().barTintColor = .clear
-    }
-    
+    @StateObject private var pingInboxVM = PingInboxViewModel()
+    @StateObject private var conversationVM = ConversationListViewModel()
     @State private var selectedTab = 0
-    
+
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(white: 0.05, alpha: 1)
+
+        let unselected = UITabBarItemAppearance()
+        unselected.normal.iconColor = UIColor(white: 0.45, alpha: 1)
+        unselected.selected.iconColor = .white
+
+        appearance.stackedLayoutAppearance = unselected
+        appearance.inlineLayoutAppearance = unselected
+        appearance.compactInlineLayoutAppearance = unselected
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
-            FeedView()
-                .tabItem {
-                    Image(systemName: selectedTab == 0 ? "house.fill" : "house")
-                }
-                .tag(0)
-            
             ExploreView()
-                .tabItem {
-                    Image(systemName: "magnifyingglass")
-                }
+                .tabItem { Label("Explore", systemImage: "magnifyingglass") }
+                .tag(0)
+
+            PingInboxView()
+                .tabItem { Label("Pings", systemImage: selectedTab == 1 ? "bell.fill" : "bell") }
+                .badge(pingInboxVM.unreadCount)
                 .tag(1)
-            
-            CurrentUserProfileView()
-                .tabItem {
-                    Image(systemName: selectedTab == 2 ? "person.fill" : "person")
-                }
+
+            ConversationListView(viewModel: conversationVM)
+                .tabItem { Label("Messages", systemImage: selectedTab == 2 ? "message.fill" : "message") }
                 .tag(2)
+
+            CurrentUserProfileView()
+                .tabItem { Label("Profile", systemImage: selectedTab == 3 ? "person.fill" : "person") }
+                .tag(3)
         }
+        .tint(.white)
         .onAppear {
-            // Set UITabBar's background color to clear when ThreadsTabView appears
-            let appearance = UITabBarAppearance()
-            appearance.backgroundColor = .clear
-            UITabBar.appearance().standardAppearance = appearance
+            pingInboxVM.startListening()
+            conversationVM.startListening()
         }
-        .tint(.black)
+        .onReceive(NotificationCenter.default.publisher(for: .switchToMessages)) { _ in
+            selectedTab = 2
+        }
     }
 }
-
-
-// Other views...
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {

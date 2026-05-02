@@ -1,51 +1,46 @@
 //
-//  CurrentUserProfileView.swift
+//  UserProfileView.swift
 //  MedTeam
-//
-//  Created by Robert Plummer on 6/24/24.
 //
 
 import SwiftUI
 
-struct CurrentUserProfileView: View {
-    @StateObject var viewModel = CurrentUserProfileViewModel()
-    @State private var isShowingSettings = false
+struct UserProfileView: View {
+    let user: User
+    @State private var showPingSheet = false
+
+    private var availablePingTypes: [PingType] {
+        var types: [PingType] = []
+        if user.isAcceptingReferrals  { types.append(.referral) }
+        if user.isMentor              { types.append(.mentorship) }
+        if user.isOpenToCollaboration { types.append(.collaboration) }
+        return types
+    }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                ScrollView(showsIndicators: false) {
-                    if let user = viewModel.currentUser {
-                        VStack(spacing: 0) {
-                            profileHeader(user: user)
-                            profileBody(user: user)
-                        }
-                    } else {
-                        ProgressView().tint(.white).padding(.top, 60)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    profileHeader
+                    if !availablePingTypes.isEmpty {
+                        pingButton
                     }
+                    profileBody
                 }
             }
-            .navigationBarHidden(true)
-            .colorScheme(.dark)
-            .sheet(isPresented: $isShowingSettings) { Settings() }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .colorScheme(.dark)
+        .sheet(isPresented: $showPingSheet) {
+            PingSheetView(targetUser: user)
         }
     }
 
     // MARK: - Header
 
-    @ViewBuilder
-    private func profileHeader(user: User) -> some View {
+    private var profileHeader: some View {
         VStack(spacing: 12) {
-            HStack {
-                Spacer()
-                Button { isShowingSettings = true } label: {
-                    Image(systemName: "gearshape")
-                        .font(.title3).foregroundColor(Color(white: 0.5))
-                }
-            }
-            .padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 8)
-
             // Avatar
             Circle()
                 .fill(Color(white: 0.15))
@@ -54,8 +49,8 @@ struct CurrentUserProfileView: View {
                     Text(initials(for: user.fullname))
                         .font(.title3).fontWeight(.semibold).foregroundColor(.white)
                 )
+                .padding(.top, 16)
 
-            // Name + username
             VStack(spacing: 4) {
                 HStack(spacing: 6) {
                     Text(user.fullname)
@@ -69,7 +64,6 @@ struct CurrentUserProfileView: View {
                     .font(.subheadline).foregroundColor(Color(white: 0.45))
             }
 
-            // Specialty + Practice chips
             HStack(spacing: 8) {
                 if let specialty = user.specialty {
                     infoChip(specialty, color: .blue)
@@ -79,19 +73,16 @@ struct CurrentUserProfileView: View {
                 }
             }
 
-            // Institution
             if let institution = user.currentInstitution, !institution.isEmpty {
                 Text(institution)
                     .font(.subheadline).foregroundColor(Color(white: 0.5))
             }
 
-            // State licenses
             if !user.stateLicenses.isEmpty {
                 Text(user.stateLicenses.joined(separator: " · "))
                     .font(.caption).foregroundColor(Color(white: 0.4))
             }
 
-            // Networking badges
             if user.isAcceptingReferrals || user.isOpenToCollaboration || user.isMentor {
                 HStack(spacing: 8) {
                     if user.isAcceptingReferrals {
@@ -107,42 +98,51 @@ struct CurrentUserProfileView: View {
                 .padding(.top, 4)
             }
         }
-        .padding(.bottom, 24)
+        .padding(.bottom, 20)
+    }
+
+    // MARK: - Ping Button
+
+    private var pingButton: some View {
+        Button {
+            showPingSheet = true
+        } label: {
+            Text("Ping \(user.fullname.components(separatedBy: " ").first ?? user.fullname)")
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(Color.white)
+                .foregroundColor(.black)
+                .cornerRadius(12)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
     }
 
     // MARK: - Body
 
-    @ViewBuilder
-    private func profileBody(user: User) -> some View {
+    private var profileBody: some View {
         VStack(spacing: 0) {
             separator
 
-            // Training
             if user.medicalSchool != nil || user.residencyProgram != nil {
                 profileSection(title: "Training") {
                     if let school = user.medicalSchool {
-                        trainingRow(
-                            title: school,
-                            detail: user.medicalSchoolGradYear.map { "Class of \($0)" }
-                        )
+                        trainingRow(title: school,
+                                    detail: user.medicalSchoolGradYear.map { "Class of \($0)" })
                     }
                     if let res = user.residencyProgram {
-                        trainingRow(
-                            title: res,
-                            detail: user.residencyCompletionYear.map { "Residency · \($0)" }
-                        )
+                        trainingRow(title: res,
+                                    detail: user.residencyCompletionYear.map { "Residency · \($0)" })
                     }
                     if let fel = user.fellowshipProgram {
-                        trainingRow(
-                            title: fel,
-                            detail: user.fellowshipCompletionYear.map { "Fellowship · \($0)" }
-                        )
+                        trainingRow(title: fel,
+                                    detail: user.fellowshipCompletionYear.map { "Fellowship · \($0)" })
                     }
                 }
                 separator
             }
 
-            // Board Certifications
             if !user.boardCertifications.isEmpty {
                 profileSection(title: "Board Certifications") {
                     ForEach(user.boardCertifications, id: \.self) { cert in
@@ -155,7 +155,6 @@ struct CurrentUserProfileView: View {
                 separator
             }
 
-            // Languages
             if !user.languagesSpoken.isEmpty {
                 profileSection(title: "Languages") {
                     Text(user.languagesSpoken.joined(separator: " · "))
@@ -165,28 +164,11 @@ struct CurrentUserProfileView: View {
                 }
                 separator
             }
-
-            // Profile completion
-            profileSection(title: "Profile Completion") {
-                VStack(alignment: .leading, spacing: 8) {
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color(white: 0.12)).frame(height: 6)
-                            Capsule().fill(Color.blue)
-                                .frame(width: geo.size.width * CGFloat(user.profileCompletionPercent) / 100, height: 6)
-                        }
-                    }
-                    .frame(height: 6)
-                    Text("\(user.profileCompletionPercent)% complete")
-                        .font(.caption).foregroundColor(Color(white: 0.4))
-                }
-                .padding(.horizontal, 24)
-            }
         }
         .padding(.bottom, 40)
     }
 
-    // MARK: - Sub-components
+    // MARK: - Helpers
 
     private var separator: some View {
         Divider().background(Color(white: 0.12)).padding(.horizontal, 24)
@@ -238,11 +220,5 @@ struct CurrentUserProfileView: View {
 
     private func initials(for name: String) -> String {
         name.components(separatedBy: " ").compactMap { $0.first }.prefix(2).map(String.init).joined()
-    }
-}
-
-struct CurrentUserProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        CurrentUserProfileView()
     }
 }

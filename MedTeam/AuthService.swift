@@ -24,9 +24,9 @@ class AuthService: ObservableObject {
     private func setupAuthStateListener() {
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             self?.userSession = user
-            if let user = user {
+            if user != nil {
                 Task {
-                    try await UserService.shared.fetchCurrentUser()
+                    try? await UserService.shared.fetchCurrentUser()
                 }
             }
         }
@@ -63,13 +63,9 @@ class AuthService: ObservableObject {
     }
     
     func signOut() {
-        do {
-            try? Auth.auth().signOut()
-            self.userSession = nil
-            UserService.shared.reset()
-        } catch {
-            print("Debug: Failed to sign out - \(error.localizedDescription)")
-        }
+        try? Auth.auth().signOut()
+        self.userSession = nil
+        UserService.shared.reset()
     }
     
     @MainActor

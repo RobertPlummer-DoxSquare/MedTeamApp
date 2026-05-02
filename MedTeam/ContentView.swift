@@ -10,33 +10,27 @@ import FirebaseAuth
 
 struct ContentView: View {
     @StateObject var authService = AuthService.shared
-    @State private var showHamburger = false
-    @State private var showSettingsView = false
+    @ObservedObject var userService = UserService.shared
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color(.systemBlue)
-                    .frame(height: geometry.size.height * 0.4)
-                    .edgesIgnoringSafeArea(.top)
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-                if authService.userSession != nil {
-                    MainTabView()
-                        .environmentObject(authService)
-
-                    if showHamburger {
-                        Hamburger(showHamburger: $showHamburger, showSettingsView: $showSettingsView)
-                            .environmentObject(authService)
+            if authService.userSession != nil {
+                if let user = userService.currentUser {
+                    if user.npiNumber == nil {
+                        OnboardingView()
+                    } else {
+                        MainTabView()
                     }
                 } else {
-                    LoginView()
-                        .environmentObject(authService)
+                    ProgressView().tint(.white)
                 }
+            } else {
+                LoginView()
             }
         }
-        .sheet(isPresented: $showSettingsView) {
-            Settings()
-        }
+        .colorScheme(.dark)
     }
 }
 
@@ -45,4 +39,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
-

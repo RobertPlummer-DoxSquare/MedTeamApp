@@ -16,6 +16,7 @@
 		AC50FDCB2C2D098C007EB55B /* ExploreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC50FDCA2C2D098C007EB55B /* ExploreViewModel.swift */; };
 		AC50FDCE2C2D2E54007EB55B /* SessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC50FDCD2C2D2E53007EB55B /* SessionViewModel.swift */; };
 		AC52033A2C312CCB00BDBA5E /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5203392C312CCA00BDBA5E /* AppState.swift */; };
+		AC9E16712CA7650500C8E92D /* Messages .swift in Sources */ = {isa = PBXBuildFile; fileRef = AC9E16702CA7650500C8E92D /* Messages .swift */; };
 		AC9F40C72C2A081800E52D4E /* MedTeamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC9F40C62C2A081800E52D4E /* MedTeamApp.swift */; };
 		AC9F40C92C2A081800E52D4E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC9F40C82C2A081800E52D4E /* ContentView.swift */; };
 		AC9F40CB2C2A081B00E52D4E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC9F40CA2C2A081B00E52D4E /* Assets.xcassets */; };
@@ -61,6 +62,29 @@
 		AC9F41342C2A5EB100E52D4E /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AC9F41332C2A5EB100E52D4E /* FirebaseStorage */; };
 		AC9F41362C2A5EB100E52D4E /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = AC9F41352C2A5EB100E52D4E /* FirebaseStorageCombine-Community */; };
 		AC9F41382C2A5EB100E52D4E /* FirebaseVertexAI-Preview in Frameworks */ = {isa = PBXBuildFile; productRef = AC9F41372C2A5EB100E52D4E /* FirebaseVertexAI-Preview */; };
+		BB01PING2C37043D00981F01 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F01 /* Ping.swift */; };
+		BB01PING2C37043D00981F02 /* PingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F02 /* PingService.swift */; };
+		BB01PING2C37043D00981F03 /* PingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F03 /* PingViewModel.swift */; };
+		BB01PING2C37043D00981F04 /* PingInboxViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F04 /* PingInboxViewModel.swift */; };
+		BB01PING2C37043D00981F05 /* PingSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F05 /* PingSheetView.swift */; };
+		BB01PING2C37043D00981F06 /* PingInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F06 /* PingInboxView.swift */; };
+		BB01PING2C37043D00981F07 /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F07 /* UserProfileView.swift */; };
+		BB01PING2C37043D00981F08 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F08 /* Date+Extensions.swift */; };
+		BB1A45422C37043D00981F01 /* NPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1A45412C37043D00981F01 /* NPIService.swift */; };
+		BB3A45422C37043D00981F02 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3A45412C37043D00981F02 /* OnboardingViewModel.swift */; };
+		BB5A45422C37043D00981F03 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5A45412C37043D00981F03 /* OnboardingView.swift */; };
+		BB0MSG2C37043D00981F01 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F01 /* Conversation.swift */; };
+		BB0MSG2C37043D00981F02 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F02 /* Message.swift */; };
+		BB0MSG2C37043D00981F03 /* Notification+Names.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F03 /* Notification+Names.swift */; };
+		BB0MSG2C37043D00981F04 /* MessagingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F04 /* MessagingService.swift */; };
+		BB0MSG2C37043D00981F05 /* ConversationListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */; };
+		BB0MSG2C37043D00981F06 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F06 /* ConversationListView.swift */; };
+		BB0MSG2C37043D00981F07 /* ThreadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */; };
+		BB0MSG2C37043D00981F08 /* ThreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F08 /* ThreadView.swift */; };
+		BB0MSG2C37043D00981F09 /* ReferralCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F09 /* ReferralCardView.swift */; };
+		BB0MSG2C37043D00981F0A /* ReferralCardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */; };
+		BB0MSG2C37043D00981F0B /* ProposalCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0B /* ProposalCardView.swift */; };
+		BB0MSG2C37043D00981F0C /* ProposalCardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +97,7 @@
 		AC50FDCA2C2D098C007EB55B /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
 		AC50FDCD2C2D2E53007EB55B /* SessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionViewModel.swift; sourceTree = "<group>"; };
 		AC5203392C312CCA00BDBA5E /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		AC9E16702CA7650500C8E92D /* Messages .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Messages .swift"; sourceTree = "<group>"; };
 		AC9F40C32C2A081800E52D4E /* MedTeamApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MedTeamApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC9F40C62C2A081800E52D4E /* MedTeamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedTeamApp.swift; sourceTree = "<group>"; };
 		AC9F40C82C2A081800E52D4E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -91,6 +116,29 @@
 		AC9F40F92C2A4D6C00E52D4E /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		AC9F40FC2C2A50FE00E52D4E /* CurrentUserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentUserProfileView.swift; sourceTree = "<group>"; };
 		AC9F40FE2C2A5CEC00E52D4E /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F01 /* Ping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ping.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F02 /* PingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingService.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F03 /* PingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingViewModel.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F04 /* PingInboxViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingInboxViewModel.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F05 /* PingSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingSheetView.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F06 /* PingInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingInboxView.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F07 /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F08 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
+		BB1A45412C37043D00981F01 /* NPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NPIService.swift; sourceTree = "<group>"; };
+		BB3A45412C37043D00981F02 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		BB5A45412C37043D00981F03 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F01 /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F02 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F03 /* Notification+Names.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification+Names.swift"; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F04 /* MessagingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagingService.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListViewModel.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F06 /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadViewModel.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F08 /* ThreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadView.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F09 /* ReferralCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralCardView.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralCardFormView.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F0B /* ProposalCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalCardView.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalCardFormView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +204,14 @@
 			name = ViewModel;
 			sourceTree = "<group>";
 		};
+		AC9E166F2CA7633200C8E92D /* Message Feed */ = {
+			isa = PBXGroup;
+			children = (
+				AC9E16702CA7650500C8E92D /* Messages .swift */,
+			);
+			name = "Message Feed";
+			sourceTree = "<group>";
+		};
 		AC9F40BA2C2A081700E52D4E = {
 			isa = PBXGroup;
 			children = (
@@ -200,6 +256,9 @@
 			isa = PBXGroup;
 			children = (
 				AC50FDBE2C2B214F007EB55B /* UserService.swift */,
+				BB1A45412C37043D00981F01 /* NPIService.swift */,
+				BB01PING1C37043D00981F02 /* PingService.swift */,
+				BB0MSG1C37043D00981F04 /* MessagingService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -209,6 +268,9 @@
 			children = (
 				AC50FDC02C2B21C9007EB55B /* User.swift */,
 				AC50FDCD2C2D2E53007EB55B /* SessionViewModel.swift */,
+				BB01PING1C37043D00981F01 /* Ping.swift */,
+				BB0MSG1C37043D00981F01 /* Conversation.swift */,
+				BB0MSG1C37043D00981F02 /* Message.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -217,6 +279,8 @@
 			isa = PBXGroup;
 			children = (
 				AC50FDC82C2D091E007EB55B /* PreviewProvider.swift */,
+				BB01PING1C37043D00981F08 /* Date+Extensions.swift */,
+				BB0MSG1C37043D00981F03 /* Notification+Names.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -224,6 +288,9 @@
 		AC9F40D82C2A13E500E52D4E /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				BB9F40D52C2A13DC00E52D401 /* Onboarding */,
+				AC9E166F2CA7633200C8E92D /* Message Feed */,
+				BB0MSG3C37043D00981F01 /* Messaging */,
 				AC9F40FB2C2A4D7900E52D4E /* Profile  */,
 				AC9F40F82C2A4D5800E52D4E /* Explore */,
 				AC9F40F52C2A4CE200E52D4E /* Feed */,
@@ -232,6 +299,21 @@
 				AC9F40DA2C2A14D300E52D4E /* Root */,
 			);
 			name = Core;
+			sourceTree = "<group>";
+		};
+		BB0MSG3C37043D00981F01 /* Messaging */ = {
+			isa = PBXGroup;
+			children = (
+				BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */,
+				BB0MSG1C37043D00981F06 /* ConversationListView.swift */,
+				BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */,
+				BB0MSG1C37043D00981F08 /* ThreadView.swift */,
+				BB0MSG1C37043D00981F09 /* ReferralCardView.swift */,
+				BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */,
+				BB0MSG1C37043D00981F0B /* ProposalCardView.swift */,
+				BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */,
+			);
+			path = Messaging;
 			sourceTree = "<group>";
 		};
 		AC9F40D92C2A140A00E52D4E /* App */ = {
@@ -310,6 +392,10 @@
 			children = (
 				AC9F40F12C2A4B1E00E52D4E /* MainTabView.swift */,
 				AC50FDC62C2BA24D007EB55B /* Hamburger.swift */,
+				BB01PING1C37043D00981F03 /* PingViewModel.swift */,
+				BB01PING1C37043D00981F04 /* PingInboxViewModel.swift */,
+				BB01PING1C37043D00981F05 /* PingSheetView.swift */,
+				BB01PING1C37043D00981F06 /* PingInboxView.swift */,
 			);
 			name = MainTab;
 			sourceTree = "<group>";
@@ -327,6 +413,7 @@
 			children = (
 				AC50FDCC2C2D0E9A007EB55B /* ViewModel */,
 				AC9F40F92C2A4D6C00E52D4E /* ExploreView.swift */,
+				BB01PING1C37043D00981F07 /* UserProfileView.swift */,
 			);
 			name = Explore;
 			sourceTree = "<group>";
@@ -339,6 +426,15 @@
 				AC4A45412C37043D00981F77 /* Settings.swift */,
 			);
 			name = "Profile ";
+			sourceTree = "<group>";
+		};
+		BB9F40D52C2A13DC00E52D401 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				BB3A45412C37043D00981F02 /* OnboardingViewModel.swift */,
+				BB5A45412C37043D00981F03 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -450,6 +546,7 @@
 				AC50FDCE2C2D2E54007EB55B /* SessionViewModel.swift in Sources */,
 				AC9F40F42C2A4CD100E52D4E /* FeedView.swift in Sources */,
 				AC9F40DE2C2A157A00E52D4E /* LoginView.swift in Sources */,
+				AC9E16712CA7650500C8E92D /* Messages .swift in Sources */,
 				AC9F40E52C2A16B200E52D4E /* RegistrationViewModel.swift in Sources */,
 				AC50FDC72C2BA24D007EB55B /* Hamburger.swift in Sources */,
 				AC9F40F22C2A4B1E00E52D4E /* MainTabView.swift in Sources */,
@@ -466,8 +563,31 @@
 				AC9F40E12C2A168A00E52D4E /* RegistrationView.swift in Sources */,
 				AC9F40FA2C2A4D6C00E52D4E /* ExploreView.swift in Sources */,
 				AC50FDCB2C2D098C007EB55B /* ExploreViewModel.swift in Sources */,
+				BB1A45422C37043D00981F01 /* NPIService.swift in Sources */,
+				BB3A45422C37043D00981F02 /* OnboardingViewModel.swift in Sources */,
+				BB5A45422C37043D00981F03 /* OnboardingView.swift in Sources */,
 				AC4A45422C37043D00981F77 /* Settings.swift in Sources */,
 				AC9F40E82C2A175900E52D4E /* AuthService.swift in Sources */,
+				BB01PING2C37043D00981F01 /* Ping.swift in Sources */,
+				BB01PING2C37043D00981F02 /* PingService.swift in Sources */,
+				BB01PING2C37043D00981F03 /* PingViewModel.swift in Sources */,
+				BB01PING2C37043D00981F04 /* PingInboxViewModel.swift in Sources */,
+				BB01PING2C37043D00981F05 /* PingSheetView.swift in Sources */,
+				BB01PING2C37043D00981F06 /* PingInboxView.swift in Sources */,
+				BB01PING2C37043D00981F07 /* UserProfileView.swift in Sources */,
+				BB01PING2C37043D00981F08 /* Date+Extensions.swift in Sources */,
+				BB0MSG2C37043D00981F01 /* Conversation.swift in Sources */,
+				BB0MSG2C37043D00981F02 /* Message.swift in Sources */,
+				BB0MSG2C37043D00981F03 /* Notification+Names.swift in Sources */,
+				BB0MSG2C37043D00981F04 /* MessagingService.swift in Sources */,
+				BB0MSG2C37043D00981F05 /* ConversationListViewModel.swift in Sources */,
+				BB0MSG2C37043D00981F06 /* ConversationListView.swift in Sources */,
+				BB0MSG2C37043D00981F07 /* ThreadViewModel.swift in Sources */,
+				BB0MSG2C37043D00981F08 /* ThreadView.swift in Sources */,
+				BB0MSG2C37043D00981F09 /* ReferralCardView.swift in Sources */,
+				BB0MSG2C37043D00981F0A /* ReferralCardFormView.swift in Sources */,
+				BB0MSG2C37043D00981F0B /* ProposalCardView.swift in Sources */,
+				BB0MSG2C37043D00981F0C /* ProposalCardFormView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -609,7 +729,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -639,7 +759,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

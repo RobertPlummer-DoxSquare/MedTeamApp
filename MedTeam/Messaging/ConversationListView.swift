@@ -28,7 +28,7 @@ struct ConversationListView: View {
                 }
             }
             .navigationTitle("Messages")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 
@@ -87,11 +87,5 @@ struct ConversationRowView: View {
         .background(Color.nmaBackground)
     }
 
-    private var typeColor: Color {
-        switch conversation.type {
-        case .referral:      return .green
-        case .mentorship:    return .blue
-        case .collaboration: return Color(hex: "3C2D8A")
-        }
-    }
+    private var typeColor: Color { conversation.type.color }
 }

@@ -17,9 +17,9 @@ struct LoginView: View {
     @State private var showResetResult = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.nmaBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     Spacer()
@@ -34,7 +34,7 @@ struct LoginView: View {
                     Text("MedTeam")
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.nmaPrimary)
                         .padding(.bottom, 48)
 
                     TextField("Email", text: $viewModel.email)
@@ -49,7 +49,7 @@ struct LoginView: View {
                     if let error = viewModel.loginError {
                         Text(error)
                             .font(.footnote)
-                            .foregroundColor(Color(red: 1, green: 0.45, blue: 0.45))
+                            .foregroundColor(.red)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
                             .padding(.top, 12)
@@ -61,7 +61,7 @@ struct LoginView: View {
                     } label: {
                         Text("Forgot password?")
                             .font(.footnote)
-                            .foregroundColor(Color(white: 0.45))
+                            .foregroundColor(.nmaSecondary)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .padding(.horizontal, 24)
                             .padding(.top, 12)
@@ -74,17 +74,17 @@ struct LoginView: View {
                     } label: {
                         Group {
                             if viewModel.isLoading {
-                                ProgressView().tint(.black)
+                                ProgressView().tint(.white)
                             } else {
                                 Text("Log In")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                             }
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.white.opacity(viewModel.canSubmit || viewModel.isLoading ? 1 : 0.5))
+                        .background(Color.nmaPrimary.opacity(viewModel.canSubmit || viewModel.isLoading ? 1 : 0.4))
                         .cornerRadius(12)
                         .padding(.horizontal, 24)
                     }
@@ -98,18 +98,17 @@ struct LoginView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Text("Don't have an account?")
-                                .foregroundColor(Color(white: 0.45))
+                                .foregroundColor(.nmaSecondary)
                             Text("Sign Up")
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.nmaPrimary)
                         }
                         .font(.footnote)
                     }
                     .padding(.bottom, 32)
                 }
             }
-            .navigationBarHidden(true)
-            .colorScheme(.dark)
+            .toolbar(.hidden, for: .navigationBar)
             .alert("Reset Password", isPresented: $showResetPrompt) {
                 TextField("Email", text: $viewModel.resetEmail)
                     .textInputAutocapitalization(.never)

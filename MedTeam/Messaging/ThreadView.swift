@@ -12,20 +12,20 @@ struct ThreadView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             VStack(spacing: 0) {
 
                 if viewModel.needsReferralCard {
                     actionBanner(
                         icon: "arrow.triangle.branch",
-                        color: .green,
+                        color: PingType.referral.color,
                         text: "Add patient details to begin the referral.",
                         buttonLabel: "Add details"
                     ) { showReferralForm = true }
                 } else if viewModel.needsProposalCard {
                     actionBanner(
                         icon: "testtube.2",
-                        color: .purple,
+                        color: PingType.collaboration.color,
                         text: "Describe your research proposal.",
                         buttonLabel: "Add details"
                     ) { showProposalForm = true }
@@ -39,12 +39,12 @@ struct ThreadView: View {
                     )
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    Divider().background(Color(white: 0.1))
+                    Divider().background(Color.nmaBorder)
                 } else if let card = viewModel.conversation.proposalCard {
                     ProposalCardView(card: card)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                    Divider().background(Color(white: 0.1))
+                    Divider().background(Color.nmaBorder)
                 }
 
                 ScrollViewReader { proxy in
@@ -79,7 +79,7 @@ struct ThreadView: View {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 1) {
                     Text(viewModel.conversation.otherParticipantName ?? "Thread")
-                        .font(.subheadline).fontWeight(.semibold).foregroundColor(.white)
+                        .font(.subheadline).fontWeight(.semibold).foregroundColor(.nmaPrimary)
                     Text(viewModel.conversation.type.displayName)
                         .font(.caption2)
                         .foregroundColor(viewModel.conversation.type.accentColor)
@@ -87,7 +87,6 @@ struct ThreadView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .colorScheme(.dark)
         .onAppear { viewModel.startListening() }
         .onDisappear { viewModel.stopListening() }
         .sheet(isPresented: $showReferralForm) {
@@ -106,10 +105,10 @@ struct ThreadView: View {
         HStack(spacing: 10) {
             TextField("Message...", text: $viewModel.messageText, axis: .vertical)
                 .lineLimit(1...4)
-                .foregroundColor(.white)
+                .foregroundColor(.nmaPrimary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(Color(white: 0.1))
+                .background(Color.nmaSubtle)
                 .cornerRadius(20)
                 .focused($inputFocused)
             Button {
@@ -119,7 +118,7 @@ struct ThreadView: View {
                     .font(.system(size: 32))
                     .foregroundColor(
                         viewModel.messageText.trimmingCharacters(in: .whitespaces).isEmpty
-                        ? Color(white: 0.25) : .white
+                        ? Color.nmaBorder : Color.nmaPrimary
                     )
             }
             .disabled(
@@ -129,7 +128,8 @@ struct ThreadView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(Color(white: 0.05))
+        .background(Color.nmaSurface)
+        .overlay(alignment: .top) { Divider().background(Color.nmaBorder) }
     }
 
     @ViewBuilder
@@ -146,7 +146,7 @@ struct ThreadView: View {
                 .cornerRadius(8)
             Text(text)
                 .font(.caption)
-                .foregroundColor(Color(white: 0.6))
+                .foregroundColor(.nmaSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
             Button(action: action) {
@@ -160,7 +160,7 @@ struct ThreadView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(Color(white: 0.06))
+        .background(Color.nmaSurface)
     }
 }
 
@@ -172,7 +172,7 @@ struct MessageBubble: View {
         if message.type == .system {
             Text(message.text)
                 .font(.caption2)
-                .foregroundColor(Color(white: 0.4))
+                .foregroundColor(.nmaSecondary)
                 .italic()
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 4)
@@ -183,8 +183,12 @@ struct MessageBubble: View {
                     .font(.subheadline)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
-                    .background(isOwn ? Color(red: 0.1, green: 0.22, blue: 0.38) : Color(white: 0.12))
-                    .foregroundColor(.white)
+                    .background(isOwn ? Color.nmaPrimary : Color.nmaSurface)
+                    .foregroundColor(isOwn ? .white : .nmaPrimary)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(isOwn ? Color.clear : Color.nmaBorder, lineWidth: 0.5)
+                    )
                     .cornerRadius(18)
                     .cornerRadius(isOwn ? 4 : 18, corners: isOwn ? .bottomRight : .bottomLeft)
                 if !isOwn { Spacer(minLength: 60) }

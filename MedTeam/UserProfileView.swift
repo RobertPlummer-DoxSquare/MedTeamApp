@@ -97,11 +97,11 @@ struct UserProfileView: View {
             HStack(spacing: 8) {
                 if user.isOpenToReferrals {
                     availBadge("Referrals: Call my office", icon: "phone.circle",
-                               fg: Color(hex: "155724"), bg: Color(hex: "D4EDDA"))
+                               fg: Color.referralGreen, bg: Color.referralGreenBackground)
                 }
                 if user.isOpenToCollaboration {
                     availBadge("Research", icon: "flask",
-                               fg: Color(hex: "3C2D8A"), bg: Color(hex: "E8E0FF"))
+                               fg: Color.researchPurple, bg: Color.researchPurpleBackground)
                 }
                 if user.isMentor {
                     availBadge("Mentor", icon: "graduationcap",
@@ -241,9 +241,9 @@ struct UserProfileView: View {
     private var chairBadge: some View {
         Label("Chairperson", systemImage: "star.fill")
             .font(.caption).fontWeight(.medium)
-            .foregroundColor(Color(hex: "7A5C00"))
+            .foregroundColor(Color.chairGold)
             .padding(.horizontal, 8).padding(.vertical, 4)
-            .background(Color(hex: "FFF3CD"))
+            .background(Color.chairGoldBackground)
             .cornerRadius(6)
     }
 

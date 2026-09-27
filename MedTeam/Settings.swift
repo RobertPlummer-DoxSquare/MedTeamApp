@@ -33,29 +33,18 @@ class SettingsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-
-    func updateField(_ field: String, value: Any) {
-        UserService.shared.updateField(field, value: value)
-    }
-
-    func saveOfficePhone() {
-        updateField("officePhone", value: officePhone)
-    }
-
-    func saveRegion() {
-        guard let region = nmaRegion else { return }
-        updateField("nmaRegion", value: region.rawValue)
-    }
 }
 
 // MARK: - Settings
 
 struct Settings: View {
     @StateObject var viewModel = SettingsViewModel()
+    @StateObject private var saver = AutoSaver()
     @State private var showDeleteConfirmation = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("Profile") {
                     NavigationLink("Specialty & Credentials") { EditSpecialtyView() }
@@ -72,39 +61,47 @@ struct Settings: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    .onChange(of: viewModel.nmaRegion) { _ in viewModel.saveRegion() }
+                    .onChange(of: viewModel.nmaRegion) { region in
+                        guard region != viewModel.user?.nmaRegion else { return }
+                        saver.save(["nmaRegion": region?.rawValue ?? FieldValue.delete()])
+                    }
                 }
 
-                Section("Availability") {
+                Section {
                     Toggle("Accept referral notifications", isOn: $viewModel.isOpenToReferrals)
-                        .tint(Color.nmaPrimary)
-                        .onChange(of: viewModel.isOpenToReferrals) { _ in
-                            viewModel.updateField("isAcceptingReferrals", value: viewModel.isOpenToReferrals)
+                        .onChange(of: viewModel.isOpenToReferrals) { on in
+                            guard on != viewModel.user?.isOpenToReferrals else { return }
+                            saver.save(["isAcceptingReferrals": on])
                         }
 
                     if viewModel.isOpenToReferrals {
-                        HStack {
-                            TextField("Office phone", text: $viewModel.officePhone)
-                                .keyboardType(.phonePad)
-                                .foregroundColor(.nmaPrimary)
-                            Spacer()
-                            Button("Save") { viewModel.saveOfficePhone() }
-                                .font(.caption).foregroundColor(.nmaPrimary)
-                        }
+                        TextField("Office phone", text: $viewModel.officePhone)
+                            .keyboardType(.phonePad)
+                            .textContentType(.telephoneNumber)
+                            .foregroundColor(.nmaPrimary)
+                            .onChange(of: viewModel.officePhone) { phone in
+                                guard phone != (viewModel.user?.officePhone ?? "") else { return }
+                                saver.save(["officePhone": phone], after: .milliseconds(800))
+                            }
                     }
 
                     Toggle("Open to research collaboration", isOn: $viewModel.openToCollaboration)
-                        .tint(Color.nmaPrimary)
-                        .onChange(of: viewModel.openToCollaboration) { _ in
-                            viewModel.updateField("isOpenToCollaboration", value: viewModel.openToCollaboration)
+                        .onChange(of: viewModel.openToCollaboration) { on in
+                            guard on != viewModel.user?.isOpenToCollaboration else { return }
+                            saver.save(["isOpenToCollaboration": on])
                         }
 
                     Toggle("Available as mentor", isOn: $viewModel.isMentor)
-                        .tint(Color.nmaPrimary)
-                        .onChange(of: viewModel.isMentor) { _ in
-                            viewModel.updateField("isMentor", value: viewModel.isMentor)
+                        .onChange(of: viewModel.isMentor) { on in
+                            guard on != viewModel.user?.isMentor else { return }
+                            saver.save(["isMentor": on])
                         }
+                } header: {
+                    Text("Availability")
+                } footer: {
+                    Text("Changes save automatically.")
                 }
+                .tint(Color.nmaPrimary)
 
                 Section("Verification") {
                     NavigationLink {
@@ -116,10 +113,10 @@ struct Settings: View {
                             switch viewModel.user?.npiStatus {
                             case .verified:
                                 Label("Verified", systemImage: "checkmark.seal.fill")
-                                    .font(.caption).foregroundColor(.green)
+                                    .font(.caption).foregroundColor(.referralGreen)
                             case .pendingReview:
                                 Label("Pending review", systemImage: "clock")
-                                    .font(.caption).foregroundColor(.orange)
+                                    .font(.caption).foregroundColor(.pendingAmber)
                             default:
                                 EmptyView()
                             }
@@ -133,8 +130,17 @@ struct Settings: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Color.nmaBackground)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .foregroundColor(.nmaPrimary)
+                }
+            }
+            .saveStatus(saver)
             .sheet(isPresented: $showDeleteConfirmation) {
                 DeleteAccountView()
             }
@@ -169,7 +175,7 @@ struct NPIVerificationView: View {
                             HStack(spacing: 12) {
                                 Image(systemName: nameMatches
                                       ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                                    .foregroundColor(nameMatches ? .green : .orange)
+                                    .foregroundColor(nameMatches ? .referralGreen : .pendingAmber)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(r.fullName).font(.subheadline).fontWeight(.semibold)
                                         .foregroundColor(Color.nmaPrimary)
@@ -254,8 +260,7 @@ struct EditSpecialtyView: View {
     @State private var subspecialties = UserService.shared.currentUser?.subspecialties ?? []
     @State private var boardCertifications = UserService.shared.currentUser?.boardCertifications ?? []
     @State private var newCert = ""
-    @State private var isSaving = false
-    @Environment(\.dismiss) var dismiss
+    @StateObject private var saver = AutoSaver()
 
     var body: some View {
         ZStack {
@@ -323,30 +328,13 @@ struct EditSpecialtyView: View {
         }
         .navigationTitle("Specialty & Credentials")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button { Task { await save() } } label: {
-                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
-                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
-                }
-                .disabled(isSaving)
-            }
-        }
+        .saveStatus(saver)
+        .onChange(of: degreeType) { saver.save(["degreeType": $0.rawValue]) }
+        .onChange(of: specialty) { saver.save(["specialty": $0], after: .milliseconds(800)) }
+        .onChange(of: subspecialties) { saver.save(["subspecialties": $0], after: .milliseconds(400)) }
+        .onChange(of: boardCertifications) { saver.save(["boardCertifications": $0]) }
     }
 
-    @MainActor
-    private func save() async {
-        isSaving = true
-        guard let uid = Auth.auth().currentUser?.uid else { isSaving = false; return }
-        try? await Firestore.firestore().collection("users").document(uid).updateData([
-            "degreeType": degreeType.rawValue,
-            "specialty": specialty,
-            "subspecialties": subspecialties,
-            "boardCertifications": boardCertifications
-        ])
-        try? await UserService.shared.fetchCurrentUser()
-        isSaving = false; dismiss()
-    }
 
     @ViewBuilder
     private func degreeChip(_ deg: DegreeType) -> some View {
@@ -366,8 +354,7 @@ struct EditPracticeView: View {
     @State private var institution = UserService.shared.currentUser?.currentInstitution ?? ""
     @State private var practiceType = UserService.shared.currentUser?.practiceType ?? PracticeType.academic
     @State private var region = UserService.shared.currentUser?.locationRegion ?? ""
-    @State private var isSaving = false
-    @Environment(\.dismiss) var dismiss
+    @StateObject private var saver = AutoSaver()
 
     var body: some View {
         ZStack {
@@ -408,37 +395,19 @@ struct EditPracticeView: View {
         }
         .navigationTitle("Practice & Institution")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button { Task { await save() } } label: {
-                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
-                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
-                }
-                .disabled(isSaving)
-            }
-        }
+        .saveStatus(saver)
+        .onChange(of: institution) { saver.save(["currentInstitution": $0], after: .milliseconds(800)) }
+        .onChange(of: practiceType) { saver.save(["practiceType": $0.rawValue]) }
+        .onChange(of: region) { saver.save(["locationRegion": $0], after: .milliseconds(800)) }
     }
 
-    @MainActor
-    private func save() async {
-        isSaving = true
-        guard let uid = Auth.auth().currentUser?.uid else { isSaving = false; return }
-        try? await Firestore.firestore().collection("users").document(uid).updateData([
-            "currentInstitution": institution,
-            "practiceType": practiceType.rawValue,
-            "locationRegion": region
-        ])
-        try? await UserService.shared.fetchCurrentUser()
-        isSaving = false; dismiss()
-    }
 }
 
 // MARK: - Edit Licenses View
 
 struct EditLicensesView: View {
     @State private var selected = UserService.shared.currentUser?.stateLicenses ?? []
-    @State private var isSaving = false
-    @Environment(\.dismiss) var dismiss
+    @StateObject private var saver = AutoSaver()
 
     var body: some View {
         ZStack {
@@ -464,33 +433,17 @@ struct EditLicensesView: View {
         }
         .navigationTitle("State Licenses")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button { Task { await save() } } label: {
-                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
-                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
-                }
-                .disabled(isSaving)
-            }
-        }
+        .saveStatus(saver)
+        .onChange(of: selected) { saver.save(["stateLicenses": $0], after: .milliseconds(400)) }
     }
 
-    @MainActor
-    private func save() async {
-        isSaving = true
-        guard let uid = Auth.auth().currentUser?.uid else { isSaving = false; return }
-        try? await Firestore.firestore().collection("users").document(uid).updateData(["stateLicenses": selected])
-        try? await UserService.shared.fetchCurrentUser()
-        isSaving = false; dismiss()
-    }
 }
 
 // MARK: - Edit Languages View
 
 struct EditLanguagesView: View {
     @State private var selected = UserService.shared.currentUser?.languagesSpoken ?? ["English"]
-    @State private var isSaving = false
-    @Environment(\.dismiss) var dismiss
+    @StateObject private var saver = AutoSaver()
 
     var body: some View {
         ZStack {
@@ -506,25 +459,10 @@ struct EditLanguagesView: View {
         }
         .navigationTitle("Languages")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button { Task { await save() } } label: {
-                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
-                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
-                }
-                .disabled(isSaving)
-            }
-        }
+        .saveStatus(saver)
+        .onChange(of: selected) { saver.save(["languagesSpoken": $0], after: .milliseconds(400)) }
     }
 
-    @MainActor
-    private func save() async {
-        isSaving = true
-        guard let uid = Auth.auth().currentUser?.uid else { isSaving = false; return }
-        try? await Firestore.firestore().collection("users").document(uid).updateData(["languagesSpoken": selected])
-        try? await UserService.shared.fetchCurrentUser()
-        isSaving = false; dismiss()
-    }
 }
 
 private struct FlowTagGrid: View {

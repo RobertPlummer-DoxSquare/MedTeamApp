@@ -341,7 +341,7 @@ private struct SpecialtyPickerSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List(filtered, id: \.self) { spec in
                 Button {
                     selected = spec; dismiss()

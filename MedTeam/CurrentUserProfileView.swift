@@ -10,7 +10,7 @@ struct CurrentUserProfileView: View {
     @State private var isShowingSettings = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.nmaBackground.ignoresSafeArea()
                 ScrollView(showsIndicators: false) {
@@ -24,7 +24,15 @@ struct CurrentUserProfileView: View {
                     }
                 }
             }
-            .navigationBarHidden(true)
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button { isShowingSettings = true } label: {
+                        Image(systemName: "gearshape").foregroundColor(Color.nmaPrimary)
+                    }
+                }
+            }
             .sheet(isPresented: $isShowingSettings) { Settings() }
         }
     }
@@ -34,15 +42,6 @@ struct CurrentUserProfileView: View {
     @ViewBuilder
     private func profileHeader(user: User) -> some View {
         VStack(spacing: 12) {
-            HStack {
-                Spacer()
-                Button { isShowingSettings = true } label: {
-                    Image(systemName: "gearshape")
-                        .font(.title3).foregroundColor(Color.nmaSecondary)
-                }
-            }
-            .padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 8)
-
             Circle()
                 .fill(Color.nmaSubtle)
                 .frame(width: 80, height: 80)
@@ -91,11 +90,11 @@ struct CurrentUserProfileView: View {
                 HStack(spacing: 8) {
                     if user.isOpenToReferrals {
                         availBadge("Referrals: Call my office", icon: "phone.circle",
-                                   fg: Color(hex: "155724"), bg: Color(hex: "D4EDDA"))
+                                   fg: Color.referralGreen, bg: Color.referralGreenBackground)
                     }
                     if user.isOpenToCollaboration {
                         availBadge("Research", icon: "flask",
-                                   fg: Color(hex: "3C2D8A"), bg: Color(hex: "E8E0FF"))
+                                   fg: Color.researchPurple, bg: Color.researchPurpleBackground)
                     }
                     if user.isMentor {
                         availBadge("Mentor", icon: "graduationcap",
@@ -236,9 +235,9 @@ struct CurrentUserProfileView: View {
     private var chairBadge: some View {
         Label("Chairperson", systemImage: "star.fill")
             .font(.caption).fontWeight(.medium)
-            .foregroundColor(Color(hex: "7A5C00"))
+            .foregroundColor(Color.chairGold)
             .padding(.horizontal, 8).padding(.vertical, 4)
-            .background(Color(hex: "FFF3CD")).cornerRadius(6)
+            .background(Color.chairGoldBackground).cornerRadius(6)
     }
 
     @ViewBuilder

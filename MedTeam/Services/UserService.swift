@@ -38,9 +38,11 @@ class UserService: ObservableObject {
         return try snapshot.data(as: User.self)
     }
 
-    func updateField(_ field: String, value: Any) {
+    /// Writes fields to the signed-in user's document, then refreshes currentUser.
+    func updateFields(_ fields: [String: Any]) async throws {
         guard let uid = Auth.auth().currentUser?.uid else { return }
-        Firestore.firestore().collection("users").document(uid).updateData([field: value])
+        try await Firestore.firestore().collection("users").document(uid).updateData(fields)
+        try await fetchCurrentUser()
     }
 
     func reset() {

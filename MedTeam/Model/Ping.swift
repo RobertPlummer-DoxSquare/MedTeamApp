@@ -56,9 +56,9 @@ enum PingType: String, Codable, CaseIterable {
 
     var color: Color {
         switch self {
-        case .referral:      return .green
-        case .mentorship:    return .blue
-        case .collaboration: return .purple
+        case .referral:      return .referralGreen
+        case .mentorship:    return .regionBlue
+        case .collaboration: return .researchPurple
         }
     }
 

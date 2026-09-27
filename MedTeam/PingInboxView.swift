@@ -12,7 +12,7 @@ struct PingInboxView: View {
     enum InboxTab { case received, sent }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.nmaBackground.ignoresSafeArea()
                 VStack(spacing: 0) {
@@ -41,7 +41,7 @@ struct PingInboxView: View {
                 }
             }
             .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
         }
         .onAppear { viewModel.startListening() }
         .onDisappear { viewModel.stopListening() }
@@ -101,13 +101,7 @@ struct PingRowView: View {
         .background(Color.nmaBackground)
     }
 
-    private var typeColor: Color {
-        switch ping.type {
-        case .referral:      return .green
-        case .mentorship:    return .blue
-        case .collaboration: return Color(hex: "3C2D8A")
-        }
-    }
+    private var typeColor: Color { ping.type.color }
 
     @ViewBuilder
     private var receivedFooter: some View {
@@ -128,7 +122,7 @@ struct PingRowView: View {
             }
             if let phone = ping.fromUser?.officePhone, !phone.isEmpty {
                 Label(phone, systemImage: "phone")
-                    .font(.caption).foregroundColor(Color(hex: "155724"))
+                    .font(.caption).foregroundColor(Color.referralGreen)
             }
             Text("Contact their office to coordinate care.")
                 .font(.caption).italic().foregroundColor(Color.nmaSecondary.opacity(0.7))
@@ -160,8 +154,8 @@ struct PingRowView: View {
     private var sentBadgeInfo: (String, Color, Color) {
         switch (ping.type, ping.status) {
         case (.referral, _):  return ("Notification sent", Color.nmaSecondary, Color.nmaSubtle)
-        case (_, .accepted):  return ("Thread open", Color(hex: "155724"), Color(hex: "D4EDDA"))
-        case (_, .pending):   return ("Pending", Color(hex: "7A4000"), Color(hex: "FFF3E0"))
+        case (_, .accepted):  return ("Thread open", Color.referralGreen, Color.referralGreenBackground)
+        case (_, .pending):   return ("Pending", Color.pendingAmber, Color.pendingAmberBackground)
         case (_, .declined):  return ("Declined", Color.nmaSecondary, Color.nmaSubtle)
         }
     }

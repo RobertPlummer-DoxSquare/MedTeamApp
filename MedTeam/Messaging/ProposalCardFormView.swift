@@ -14,14 +14,14 @@ struct ProposalCardFormView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.nmaBackground.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Share the key details of your research so your collaborator can evaluate the fit.")
                             .font(.subheadline)
-                            .foregroundColor(Color(white: 0.45))
+                            .foregroundColor(.nmaSecondary)
                             .padding(.top, 4)
 
                         field("Research Topic",
@@ -30,19 +30,19 @@ struct ProposalCardFormView: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             Text("CURRENT STAGE")
-                                .font(.caption).foregroundColor(Color(white: 0.4)).tracking(1)
+                                .font(.caption).foregroundColor(.nmaSecondary).tracking(1)
                             Picker("Stage", selection: $stage) {
                                 ForEach(ProposalCard.ResearchStage.allCases, id: \.self) {
                                     Text($0.rawValue).tag($0)
                                 }
                             }
                             .pickerStyle(.menu)
-                            .tint(.white)
+                            .tint(.nmaPrimary)
                             .padding(12)
-                            .background(Color(white: 0.08))
+                            .background(Color.nmaSurface)
                             .cornerRadius(10)
                             .overlay(RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color(white: 0.15), lineWidth: 0.5))
+                                .stroke(Color.nmaBorder, lineWidth: 0.5))
                         }
 
                         field("Role Needed",
@@ -65,8 +65,8 @@ struct ProposalCardFormView: View {
                             Text("Submit Proposal")
                                 .fontWeight(.semibold)
                                 .frame(maxWidth: .infinity).frame(height: 50)
-                                .background(isValid ? Color.white : Color(white: 0.15))
-                                .foregroundColor(isValid ? .black : Color(white: 0.35))
+                                .background(isValid ? Color.nmaPrimary : Color.nmaSubtle)
+                                .foregroundColor(isValid ? .white : .nmaSecondary)
                                 .cornerRadius(12)
                         }
                         .disabled(!isValid)
@@ -76,11 +76,10 @@ struct ProposalCardFormView: View {
             }
             .navigationTitle("Research Proposal")
             .navigationBarTitleDisplayMode(.inline)
-            .colorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Color(white: 0.5))
+                        .foregroundColor(.nmaSecondary)
                 }
             }
         }
@@ -89,14 +88,14 @@ struct ProposalCardFormView: View {
     private func field(_ label: String, placeholder: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label.uppercased())
-                .font(.caption).foregroundColor(Color(white: 0.4)).tracking(1)
+                .font(.caption).foregroundColor(.nmaSecondary).tracking(1)
             TextField(placeholder, text: text)
-                .foregroundColor(.white)
+                .foregroundColor(.nmaPrimary)
                 .padding(12)
-                .background(Color(white: 0.08))
+                .background(Color.nmaSurface)
                 .cornerRadius(10)
                 .overlay(RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color(white: 0.15), lineWidth: 0.5))
+                    .stroke(Color.nmaBorder, lineWidth: 0.5))
         }
     }
 }

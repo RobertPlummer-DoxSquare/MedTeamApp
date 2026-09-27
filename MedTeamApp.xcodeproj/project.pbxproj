@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		AC2FE8D72FAAB48600D12943 /* NMARegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8D62FAAB48600D12943 /* NMARegion.swift */; };
 		AC2FE8D92FAAB4A700D12943 /* NMATheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8D82FAAB4A700D12943 /* NMATheme.swift */; };
+		BB0A5A022FB0000000D12943 /* AutoSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0A5A012FB0000000D12943 /* AutoSaver.swift */; };
 		AC2FE8DC2FAAB51100D12943 /* MemberDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8DB2FAAB51100D12943 /* MemberDirectoryView.swift */; };
 		AC2FE8DE2FAAB52D00D12943 /* MemberDirectoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8DD2FAAB52D00D12943 /* MemberDirectoryViewModel.swift */; };
 		AC2FE8E02FAB0D0F00D12943 /* NMAMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8DF2FAB0D0F00D12943 /* NMAMapView.swift */; };
@@ -96,6 +97,7 @@
 /* Begin PBXFileReference section */
 		AC2FE8D62FAAB48600D12943 /* NMARegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NMARegion.swift; sourceTree = "<group>"; };
 		AC2FE8D82FAAB4A700D12943 /* NMATheme.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NMATheme.swift; sourceTree = "<group>"; };
+		BB0A5A012FB0000000D12943 /* AutoSaver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoSaver.swift; sourceTree = "<group>"; };
 		AC2FE8DB2FAAB51100D12943 /* MemberDirectoryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemberDirectoryView.swift; path = MedTeam/Directory/MemberDirectoryView.swift; sourceTree = SOURCE_ROOT; };
 		AC2FE8DD2FAAB52D00D12943 /* MemberDirectoryViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemberDirectoryViewModel.swift; path = MedTeam/Directory/MemberDirectoryViewModel.swift; sourceTree = SOURCE_ROOT; };
 		AC2FE8DF2FAB0D0F00D12943 /* NMAMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NMAMapView.swift; path = MedTeam/Directory/NMAMapView.swift; sourceTree = SOURCE_ROOT; };
@@ -386,6 +388,7 @@
 			isa = PBXGroup;
 			children = (
 				AC2FE8D82FAAB4A700D12943 /* NMATheme.swift */,
+				BB0A5A012FB0000000D12943 /* AutoSaver.swift */,
 				AC9F40FE2C2A5CEC00E52D4E /* GoogleService-Info.plist */,
 				AC9F40EB2C2A193C00E52D4E /* ViewModifiers */,
 			);
@@ -614,6 +617,7 @@
 				AC2FE8DC2FAAB51100D12943 /* MemberDirectoryView.swift in Sources */,
 				BB0MSG2C37043D00981F05 /* ConversationListViewModel.swift in Sources */,
 				AC2FE8D92FAAB4A700D12943 /* NMATheme.swift in Sources */,
+				BB0A5A022FB0000000D12943 /* AutoSaver.swift in Sources */,
 				BB0MSG2C37043D00981F06 /* ConversationListView.swift in Sources */,
 				BB0MSG2C37043D00981F07 /* ThreadViewModel.swift in Sources */,
 				BB0MSG2C37043D00981F08 /* ThreadView.swift in Sources */,

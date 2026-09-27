@@ -16,7 +16,7 @@ struct PingSheetView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.nmaBackground.ignoresSafeArea()
                 if viewModel.didSend {
@@ -103,12 +103,12 @@ struct PingSheetView: View {
             ?? viewModel.targetUser.fullname
         return VStack(spacing: 16) {
             Circle()
-                .fill(isThread ? Color.nmaPrimary.opacity(0.08) : Color.green.opacity(0.1))
+                .fill(isThread ? Color.nmaPrimary.opacity(0.08) : Color.referralGreenBackground)
                 .frame(width: 64, height: 64)
                 .overlay(
                     Image(systemName: isThread ? "message.fill" : "checkmark")
                         .font(.title2)
-                        .foregroundColor(isThread ? Color.nmaPrimary : .green)
+                        .foregroundColor(isThread ? Color.nmaPrimary : .referralGreen)
                 )
             Text(isThread ? "Thread opened" : "Referral notification sent")
                 .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)

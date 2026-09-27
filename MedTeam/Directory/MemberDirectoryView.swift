@@ -90,35 +90,14 @@ struct MemberDirectoryView: View {
     // MARK: - Scope Toggle
 
     private var scopeToggle: some View {
-        HStack(spacing: 0) {
-            scopeButton("My Region", active: !showAllMembers) {
-                withAnimation { showAllMembers = false }
-            }
-            scopeButton("All NMA Members", active: showAllMembers) {
-                withAnimation { showAllMembers = true }
-            }
+        Picker("Show", selection: $showAllMembers.animation()) {
+            Text("My Region").tag(false)
+            Text("All NMA Members").tag(true)
         }
+        .pickerStyle(.segmented)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(Color.nmaBackground)
-    }
-
-    @ViewBuilder
-    private func scopeButton(_ label: String, active: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.subheadline)
-                .fontWeight(active ? .semibold : .regular)
-                .foregroundColor(active ? Color.nmaPrimary : Color.nmaSecondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
-                .background(
-                    active
-                        ? RoundedRectangle(cornerRadius: 8).fill(Color.nmaSurface)
-                            .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
-                        : nil
-                )
-        }
     }
 
     // MARK: - Filtered Users
@@ -226,9 +205,9 @@ struct MemberRowView: View {
                     if user.isChairperson {
                         Text("Chair")
                             .font(.caption2).fontWeight(.semibold)
-                            .foregroundColor(Color(hex: "7A5C00"))
+                            .foregroundColor(Color.chairGold)
                             .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(Color(hex: "FFF3CD"))
+                            .background(Color.chairGoldBackground)
                             .cornerRadius(4)
                     }
                 }
@@ -244,13 +223,13 @@ struct MemberRowView: View {
 
                 HStack(spacing: 6) {
                     if user.isOpenToReferrals {
-                        availabilityBadge("Referrals", color: Color(hex: "155724"), bg: Color(hex: "D4EDDA"))
+                        availabilityBadge("Referrals", color: Color.referralGreen, bg: Color.referralGreenBackground)
                     }
                     if user.isMentor {
                         availabilityBadge("Mentor", color: Color.nmaSecondary, bg: Color.nmaSubtle)
                     }
                     if user.isOpenToCollaboration {
-                        availabilityBadge("Research", color: Color(hex: "3C2D8A"), bg: Color(hex: "E8E0FF"))
+                        availabilityBadge("Research", color: Color.researchPurple, bg: Color.researchPurpleBackground)
                     }
                 }
                 .padding(.top, 2)
@@ -287,9 +266,9 @@ struct MemberRowView: View {
         }()
         Text(user.isChairperson ? "\(numeral) Chair" : numeral)
             .font(.system(size: 9, weight: .medium))
-            .foregroundColor(Color(hex: "1D5C99"))
+            .foregroundColor(Color.regionBlue)
             .padding(.horizontal, 5).padding(.vertical, 2)
-            .background(Color(hex: "EBF4FF"))
+            .background(Color.regionBlueBackground)
             .cornerRadius(4)
     }
 
@@ -323,11 +302,11 @@ struct MemberRowView: View {
         let initials = user.fullname
             .components(separatedBy: " ").compactMap { $0.first }.prefix(2).map(String.init).joined()
         return Circle()
-            .fill(Color(hex: "EBF4FF"))
+            .fill(Color.regionBlueBackground)
             .overlay(
                 Text(initials)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(hex: "1D5C99"))
+                    .foregroundColor(Color.regionBlue)
             )
     }
 }
@@ -340,7 +319,7 @@ struct DirectoryFilterSheet: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("Specialty") {
                     Picker("Specialty", selection: $filters.specialty) {

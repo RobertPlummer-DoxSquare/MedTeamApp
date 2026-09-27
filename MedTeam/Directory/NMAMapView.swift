@@ -12,7 +12,7 @@ struct NMAMapView: UIViewRepresentable {
         config.defaultWebpagePreferences = prefs
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
-        let bg = UIColor(red: 0.11, green: 0.11, blue: 0.118, alpha: 1)
+        let bg = UIColor(Color.nmaSubtle)
         webView.backgroundColor = bg
         webView.scrollView.backgroundColor = bg
         webView.scrollView.isScrollEnabled = false
@@ -36,10 +36,10 @@ struct NMAMapView: UIViewRepresentable {
         <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
         <style>
           * { margin:0; padding:0; box-sizing:border-box; }
-          html, body { background:#1C1C1E; width:100%; height:100%; overflow:hidden; }
+          html, body { background:#F2F2F2; width:100%; height:100%; overflow:hidden; }
           #map svg { display:block; width:100%; height:auto; }
           #loading { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-                     color:#48484A; font-family:-apple-system,sans-serif; font-size:12px; }
+                     color:#888888; font-family:-apple-system,sans-serif; font-size:12px; }
         </style>
         </head>
         <body>
@@ -55,7 +55,7 @@ struct NMAMapView: UIViewRepresentable {
           .attr("viewBox", "0 0 " + W + " " + H)
           .attr("width", "100%");
 
-        svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#1C1C1E");
+        svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#F2F2F2");
 
         const projection = d3.geoAlbersUsa()
           .scale(1200).translate([W / 2 + 30, H / 2 + 20]);
@@ -70,8 +70,8 @@ struct NMAMapView: UIViewRepresentable {
               .join("path")
               .attr("class", "state")
               .attr("d", path)
-              .attr("fill", d => ACTIVE.has(d.properties.name) ? "#2A7DD4" : "#2C2C2E")
-              .attr("stroke", "#1C1C1E")
+              .attr("fill", d => ACTIVE.has(d.properties.name) ? "#1D5C99" : "#DCDCDC")
+              .attr("stroke", "#FFFFFF")
               .attr("stroke-width", "1.2")
               .attr("stroke-linejoin", "round");
 
@@ -79,7 +79,7 @@ struct NMAMapView: UIViewRepresentable {
               .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
               .attr("d", path)
               .attr("fill", "none")
-              .attr("stroke", "#1C1C1E")
+              .attr("stroke", "#FFFFFF")
               .attr("stroke-width", "1.5");
           })
           .catch(() => {

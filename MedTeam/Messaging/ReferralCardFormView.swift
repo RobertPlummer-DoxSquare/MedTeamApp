@@ -16,14 +16,14 @@ struct ReferralCardFormView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.nmaBackground.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Complete these details so the receiving physician can prepare.")
                             .font(.subheadline)
-                            .foregroundColor(Color(white: 0.45))
+                            .foregroundColor(.nmaSecondary)
                             .padding(.top, 4)
 
                         field("Patient Age", placeholder: "e.g. 67", text: $patientAge)
@@ -35,7 +35,7 @@ struct ReferralCardFormView: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             Text("URGENCY")
-                                .font(.caption).foregroundColor(Color(white: 0.4)).tracking(1)
+                                .font(.caption).foregroundColor(.nmaSecondary).tracking(1)
                             Picker("Urgency", selection: $urgency) {
                                 ForEach(ReferralCard.ReferralUrgency.allCases, id: \.self) {
                                     Text($0.rawValue).tag($0)
@@ -59,8 +59,8 @@ struct ReferralCardFormView: View {
                             Text("Submit Referral Details")
                                 .fontWeight(.semibold)
                                 .frame(maxWidth: .infinity).frame(height: 50)
-                                .background(isValid ? Color.white : Color(white: 0.15))
-                                .foregroundColor(isValid ? .black : Color(white: 0.35))
+                                .background(isValid ? Color.nmaPrimary : Color.nmaSubtle)
+                                .foregroundColor(isValid ? .white : .nmaSecondary)
                                 .cornerRadius(12)
                         }
                         .disabled(!isValid)
@@ -70,11 +70,10 @@ struct ReferralCardFormView: View {
             }
             .navigationTitle("Referral Details")
             .navigationBarTitleDisplayMode(.inline)
-            .colorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Color(white: 0.5))
+                        .foregroundColor(.nmaSecondary)
                 }
             }
         }
@@ -83,14 +82,14 @@ struct ReferralCardFormView: View {
     private func field(_ label: String, placeholder: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label.uppercased())
-                .font(.caption).foregroundColor(Color(white: 0.4)).tracking(1)
+                .font(.caption).foregroundColor(.nmaSecondary).tracking(1)
             TextField(placeholder, text: text)
-                .foregroundColor(.white)
+                .foregroundColor(.nmaPrimary)
                 .padding(12)
-                .background(Color(white: 0.08))
+                .background(Color.nmaSurface)
                 .cornerRadius(10)
                 .overlay(RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color(white: 0.15), lineWidth: 0.5))
+                    .stroke(Color.nmaBorder, lineWidth: 0.5))
         }
     }
 }

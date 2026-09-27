@@ -14,7 +14,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
 
             if authService.userSession != nil {
                 if let user = userService.currentUser {
@@ -24,13 +24,12 @@ struct ContentView: View {
                         MainTabView()
                     }
                 } else {
-                    ProgressView().tint(.white)
+                    ProgressView().tint(.nmaPrimary)
                 }
             } else {
                 LoginView()
             }
         }
-        .colorScheme(.dark)
     }
 }
 

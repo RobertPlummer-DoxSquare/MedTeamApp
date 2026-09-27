@@ -15,13 +15,13 @@ struct MainTabView: View {
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .white
+        appearance.backgroundColor = UIColor(Color.nmaSurface)
 
         let item = UITabBarItemAppearance()
-        item.normal.iconColor   = UIColor(white: 0.6, alpha: 1)
-        item.selected.iconColor = UIColor(red: 0.102, green: 0.102, blue: 0.102, alpha: 1)
-        item.normal.titleTextAttributes   = [.foregroundColor: UIColor(white: 0.6, alpha: 1)]
-        item.selected.titleTextAttributes = [.foregroundColor: UIColor(red: 0.102, green: 0.102, blue: 0.102, alpha: 1)]
+        item.normal.iconColor   = UIColor(Color.nmaSecondary)
+        item.selected.iconColor = UIColor(Color.nmaPrimary)
+        item.normal.titleTextAttributes   = [.foregroundColor: UIColor(Color.nmaSecondary)]
+        item.selected.titleTextAttributes = [.foregroundColor: UIColor(Color.nmaPrimary)]
 
         appearance.stackedLayoutAppearance      = item
         appearance.inlineLayoutAppearance       = item
@@ -32,13 +32,14 @@ struct MainTabView: View {
 
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
-        navAppearance.backgroundColor = UIColor(red: 0.11, green: 0.11, blue: 0.118, alpha: 1.0)
-        navAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        navAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        navAppearance.backgroundColor = UIColor(Color.nmaBackground)
+        navAppearance.shadowColor = UIColor(Color.nmaBorder)
+        navAppearance.titleTextAttributes = [.foregroundColor: UIColor(Color.nmaPrimary)]
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor(Color.nmaPrimary)]
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().compactAppearance = navAppearance
-        UINavigationBar.appearance().tintColor = .white
+        UINavigationBar.appearance().tintColor = UIColor(Color.nmaPrimary)
     }
 
     var body: some View {

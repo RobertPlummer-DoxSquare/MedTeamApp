@@ -30,4 +30,16 @@ extension Color {
     static let nmaSecondary  = Color(hex: "888888")
     static let nmaBorder     = Color(hex: "E5E5E5")
     static let nmaSubtle     = Color(hex: "F2F2F2")
+
+    // Accent colors, each with a light background for badges and chips.
+    static let referralGreen            = Color(hex: "155724")
+    static let referralGreenBackground  = Color(hex: "D4EDDA")
+    static let researchPurple           = Color(hex: "3C2D8A")
+    static let researchPurpleBackground = Color(hex: "E8E0FF")
+    static let regionBlue               = Color(hex: "1D5C99")
+    static let regionBlueBackground     = Color(hex: "EBF4FF")
+    static let chairGold                = Color(hex: "7A5C00")
+    static let chairGoldBackground      = Color(hex: "FFF3CD")
+    static let pendingAmber             = Color(hex: "7A4000")
+    static let pendingAmberBackground   = Color(hex: "FFF3E0")
 }

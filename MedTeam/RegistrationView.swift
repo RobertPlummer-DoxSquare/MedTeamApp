@@ -15,7 +15,7 @@ struct RegistrationView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
@@ -30,7 +30,7 @@ struct RegistrationView: View {
                     Text("Create Account")
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.nmaPrimary)
                         .padding(.bottom, 40)
 
                     VStack(spacing: 12) {
@@ -56,7 +56,7 @@ struct RegistrationView: View {
                     if let error = viewModel.errorMessage {
                         Text(error)
                             .font(.footnote)
-                            .foregroundColor(Color(red: 1, green: 0.45, blue: 0.45))
+                            .foregroundColor(.red)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
                             .padding(.top, 12)
@@ -70,17 +70,17 @@ struct RegistrationView: View {
                     } label: {
                         Group {
                             if viewModel.isLoading {
-                                ProgressView().tint(.black)
+                                ProgressView().tint(.white)
                             } else {
                                 Text("Sign Up")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                             }
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.white)
+                        .background(Color.nmaPrimary)
                         .cornerRadius(12)
                         .padding(.horizontal, 24)
                     }
@@ -92,10 +92,10 @@ struct RegistrationView: View {
                     Button { dismiss() } label: {
                         HStack(spacing: 4) {
                             Text("Already have an account?")
-                                .foregroundColor(Color(white: 0.45))
+                                .foregroundColor(.nmaSecondary)
                             Text("Sign In")
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.nmaPrimary)
                         }
                         .font(.footnote)
                     }
@@ -103,7 +103,6 @@ struct RegistrationView: View {
                 }
             }
         }
-        .colorScheme(.dark)
     }
 }
 

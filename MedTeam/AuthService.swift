@@ -8,6 +8,7 @@
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseFirestoreSwift
+import FirebaseStorage
 
 class AuthService: ObservableObject {
     @Published var userSession: FirebaseAuth.User?
@@ -66,6 +67,93 @@ class AuthService: ObservableObject {
         try? Auth.auth().signOut()
         self.userSession = nil
         UserService.shared.reset()
+    }
+
+    func sendPasswordReset(toEmail email: String) async throws {
+        try await Auth.auth().sendPasswordReset(withEmail: email)
+    }
+
+    /// Set after a successful deletion so the login screen can confirm it.
+    @Published var didDeleteAccount = false
+
+    /// Permanently deletes the signed-in account. Conversations are kept for the other
+    /// participant but show "Deleted user"; pings are removed.
+    @MainActor
+    func deleteAccount(password: String) async throws {
+        guard let user = Auth.auth().currentUser, let email = user.email else { return }
+
+        // Re-authenticate first so Firebase can't reject the final step with
+        // requiresRecentLogin after the profile data is already gone.
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        try await user.reauthenticate(with: credential)
+
+        let uid = user.uid
+        let db = Firestore.firestore()
+
+        let conversations = try await db.collection("conversations")
+            .whereField("participantIds", arrayContains: uid).getDocuments()
+        for doc in conversations.documents {
+            try await doc.reference.updateData(["participantNames.\(uid)": "Deleted user"])
+            try await doc.reference.collection("messages").addDocument(data: [
+                "senderId": "system",
+                "text": "This member deleted their account.",
+                "type": Message.MessageType.system.rawValue,
+                "createdAt": Timestamp(date: Date()),
+                "readBy": [uid]
+            ])
+        }
+
+        let sent = try await db.collection("pings").whereField("fromUserId", isEqualTo: uid).getDocuments()
+        let received = try await db.collection("pings").whereField("toUserId", isEqualTo: uid).getDocuments()
+        let batch = db.batch()
+        for doc in sent.documents + received.documents { batch.deleteDocument(doc.reference) }
+        try await batch.commit()
+
+        // The app doesn't upload photos yet, but remove one if it lives in our Storage bucket.
+        if let url = UserService.shared.currentUser?.profileImageUrl,
+           url.hasPrefix("gs://") || url.contains("firebasestorage.googleapis.com") {
+            try? await Storage.storage().reference(forURL: url).delete()
+        }
+
+        try await db.collection("users").document(uid).delete()
+        try await user.delete()
+
+        self.userSession = nil
+        UserService.shared.reset()
+        didDeleteAccount = true
+    }
+
+    /// Plain-language text for Firebase Auth / Firestore errors.
+    static func friendlyMessage(for error: Error) -> String {
+        let nsError = error as NSError
+        if nsError.domain == AuthErrorDomain, let code = AuthErrorCode.Code(rawValue: nsError.code) {
+            switch code {
+            case .wrongPassword, .invalidCredential:
+                return "That email and password don't match. Please try again."
+            case .userNotFound:
+                return "No account uses that email address."
+            case .invalidEmail, .missingEmail:
+                return "Please enter a valid email address."
+            case .emailAlreadyInUse:
+                return "That email is already registered. Try logging in instead."
+            case .weakPassword:
+                return "Please choose a stronger password (at least 6 characters)."
+            case .networkError:
+                return "You appear to be offline. Check your connection and try again."
+            case .tooManyRequests:
+                return "Too many attempts. Please wait a few minutes and try again."
+            case .userDisabled:
+                return "This account has been disabled. Please contact support."
+            case .requiresRecentLogin:
+                return "For your security, please log out, log back in, and try again."
+            default:
+                break
+            }
+        }
+        if nsError.domain == FirestoreErrorDomain, nsError.code == FirestoreErrorCode.permissionDenied.rawValue {
+            return "You don't have permission to do that. Please contact support."
+        }
+        return "Something went wrong. Please try again."
     }
     
     @MainActor

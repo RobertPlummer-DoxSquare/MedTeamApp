@@ -53,7 +53,6 @@ class SettingsViewModel: ObservableObject {
 struct Settings: View {
     @StateObject var viewModel = SettingsViewModel()
     @State private var showDeleteConfirmation = false
-    @State private var showDeleteAlert = false
 
     var body: some View {
         NavigationView {
@@ -114,9 +113,15 @@ struct Settings: View {
                         HStack {
                             Text("NPI Verification")
                             Spacer()
-                            if viewModel.user?.npiVerified == true {
+                            switch viewModel.user?.npiStatus {
+                            case .verified:
                                 Label("Verified", systemImage: "checkmark.seal.fill")
                                     .font(.caption).foregroundColor(.green)
+                            case .pendingReview:
+                                Label("Pending review", systemImage: "clock")
+                                    .font(.caption).foregroundColor(.orange)
+                            default:
+                                EmptyView()
                             }
                         }
                     }
@@ -131,15 +136,10 @@ struct Settings: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showDeleteConfirmation) {
-                ConfirmationView { deleteAccount() }
-            }
-            .alert("Account Deleted", isPresented: $showDeleteAlert) {
-                Button("OK", role: .cancel) {}
+                DeleteAccountView()
             }
         }
     }
-
-    private func deleteAccount() { showDeleteAlert = true }
 }
 
 // MARK: - NPI Verification View
@@ -148,6 +148,7 @@ struct NPIVerificationView: View {
     @State private var npiInput = UserService.shared.currentUser?.npiNumber ?? ""
     @State private var lookupState: LookupState = .idle
     @State private var result: NPIResult?
+    @State private var nameMatches = false
 
     var body: some View {
         ZStack {
@@ -166,7 +167,9 @@ struct NPIVerificationView: View {
                     case .success:
                         if let r = result {
                             HStack(spacing: 12) {
-                                Image(systemName: "checkmark.seal.fill").foregroundColor(.green)
+                                Image(systemName: nameMatches
+                                      ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundColor(nameMatches ? .green : .orange)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(r.fullName).font(.subheadline).fontWeight(.semibold)
                                         .foregroundColor(Color.nmaPrimary)
@@ -178,6 +181,10 @@ struct NPIVerificationView: View {
                             .cornerRadius(12)
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
                             .padding(.horizontal, 24)
+
+                            if !nameMatches {
+                                NPINameMismatchNote(registryName: r.fullName)
+                            }
                         }
                     case .failure(let msg):
                         Text(msg).font(.caption).foregroundColor(.red).padding(.horizontal, 24)
@@ -188,11 +195,20 @@ struct NPIVerificationView: View {
                         Task {
                             lookupState = .loading
                             do {
-                                result = try await NPIService.lookup(npi: npiInput)
+                                let lookup = try await NPIService.lookup(npi: npiInput)
+                                let accountName = UserService.shared.currentUser?.fullname ?? ""
+                                let matches = NPIService.nameMatches(lookup, accountName: accountName)
+                                let status: NPIStatus = matches ? .verified : .pendingReview
                                 let uid = Auth.auth().currentUser?.uid ?? ""
                                 try await Firestore.firestore().collection("users").document(uid)
-                                    .updateData(["npiNumber": npiInput, "npiVerified": true])
+                                    .updateData([
+                                        "npiNumber": npiInput,
+                                        "npiVerified": matches,
+                                        "npiStatus": status.rawValue
+                                    ])
                                 try await UserService.shared.fetchCurrentUser()
+                                result = lookup
+                                nameMatches = matches
                                 lookupState = .success
                             } catch {
                                 lookupState = .failure(error.localizedDescription)
@@ -213,6 +229,20 @@ struct NPIVerificationView: View {
         }
         .navigationTitle("NPI Verification")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - NPI Name Mismatch Note
+
+struct NPINameMismatchNote: View {
+    let registryName: String
+
+    var body: some View {
+        Text("The name on this NPI (\(registryName)) doesn't match your account name, so we can't show a Verified badge yet. Your NPI has been saved for review.")
+            .font(.caption)
+            .foregroundColor(Color.nmaSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 24)
     }
 }
 
@@ -522,26 +552,70 @@ private struct FlowTagGrid: View {
 
 // MARK: - Delete Confirmation
 
-struct ConfirmationView: View {
-    let confirmAction: () -> Void
+struct DeleteAccountView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var password = ""
+    @State private var isDeleting = false
+    @State private var errorMessage: String?
+    @State private var showFinalConfirmation = false
 
     var body: some View {
         ZStack {
             Color.nmaBackground.ignoresSafeArea()
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 Spacer()
                 Text("Delete Account")
                     .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
-                Text("This action is permanent and cannot be undone.")
+                Text("This permanently deletes your profile and login. People you've messaged will see \"Deleted user\" in those conversations. This can't be undone.")
                     .font(.subheadline).foregroundColor(Color.nmaSecondary)
-                    .multilineTextAlignment(.center).padding(.horizontal, 40)
-                Button(action: confirmAction) {
-                    Text("Delete My Account")
-                        .font(.subheadline).fontWeight(.semibold).foregroundColor(.white)
-                        .frame(maxWidth: .infinity).frame(height: 50)
-                        .background(Color.red).cornerRadius(12).padding(.horizontal, 24)
+                    .multilineTextAlignment(.center).padding(.horizontal, 32)
+
+                SecureField("Enter your password to confirm", text: $password)
+                    .textContentType(.password)
+                    .modifier(TextFieldModifier())
+
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.caption).foregroundColor(.red)
+                        .multilineTextAlignment(.center).padding(.horizontal, 32)
                 }
+
+                Button { showFinalConfirmation = true } label: {
+                    Group {
+                        if isDeleting { ProgressView().tint(.white) }
+                        else { Text("Delete My Account").fontWeight(.semibold) }
+                    }
+                    .font(.subheadline).foregroundColor(.white)
+                    .frame(maxWidth: .infinity).frame(height: 50)
+                    .background(password.isEmpty ? Color.red.opacity(0.4) : Color.red)
+                    .cornerRadius(12).padding(.horizontal, 24)
+                }
+                .disabled(password.isEmpty || isDeleting)
+
+                Button("Cancel") { dismiss() }
+                    .font(.subheadline).foregroundColor(Color.nmaSecondary)
+                    .disabled(isDeleting)
                 Spacer()
+            }
+        }
+        .interactiveDismissDisabled(isDeleting)
+        .confirmationDialog("Delete your account permanently?",
+                            isPresented: $showFinalConfirmation, titleVisibility: .visible) {
+            Button("Delete Account", role: .destructive) { delete() }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    private func delete() {
+        errorMessage = nil
+        isDeleting = true
+        Task {
+            do {
+                // On success the app returns to the login screen, which confirms the deletion.
+                try await AuthService.shared.deleteAccount(password: password)
+            } catch {
+                errorMessage = AuthService.friendlyMessage(for: error)
+                isDeleting = false
             }
         }
     }

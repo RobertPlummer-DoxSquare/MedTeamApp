@@ -53,28 +53,38 @@ struct RegistrationView: View {
                             .modifier(TextFieldModifier())
                     }
 
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundColor(Color(red: 1, green: 0.45, blue: 0.45))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 12)
+                    }
+
                     Spacer().frame(height: 32)
 
                     Button {
-                        Task {
-                            do {
-                                viewModel.credentials = credentials
-                                try await viewModel.createUser()
-                            } catch {
-                                print("User creation failed: \(error.localizedDescription)")
+                        viewModel.credentials = credentials
+                        Task { await viewModel.createUser() }
+                    } label: {
+                        Group {
+                            if viewModel.isLoading {
+                                ProgressView().tint(.black)
+                            } else {
+                                Text("Sign Up")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
                             }
                         }
-                    } label: {
-                        Text("Sign Up")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .padding(.horizontal, 24)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .padding(.horizontal, 24)
                     }
+                    .disabled(viewModel.isLoading)
                     .padding(.bottom, 40)
 
                     Spacer()

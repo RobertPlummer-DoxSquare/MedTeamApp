@@ -175,7 +175,9 @@ struct OnboardingStep1NPI: View {
                     case .success:
                         if let r = vm.npiResult {
                             HStack(spacing: 12) {
-                                Image(systemName: "checkmark.seal.fill").foregroundColor(.green)
+                                Image(systemName: vm.npiNameMatches
+                                      ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundColor(vm.npiNameMatches ? .green : .orange)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(r.fullName)
                                         .font(.subheadline).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
@@ -193,6 +195,10 @@ struct OnboardingStep1NPI: View {
                             .cornerRadius(12)
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
                             .padding(.horizontal, 24)
+
+                            if !vm.npiNameMatches {
+                                NPINameMismatchNote(registryName: r.fullName)
+                            }
                         }
                     case .failure(let msg):
                         Text(msg).font(.caption).foregroundColor(.red).padding(.horizontal, 24)

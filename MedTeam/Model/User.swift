@@ -21,6 +21,7 @@ struct User: Identifiable, Codable, Hashable {
     // MARK: - Identity & Verification
     var npiNumber: String?
     var npiVerified: Bool
+    var npiStatus: NPIStatus
 
     // MARK: - Role & Specialty
     var degreeType: DegreeType?
@@ -56,7 +57,7 @@ struct User: Identifiable, Codable, Hashable {
     // MARK: - Computed (not stored in Firestore)
     var profileCompletionPercent: Int {
         let checks: [Bool] = [
-            npiNumber != nil,
+            !(npiNumber ?? "").isEmpty,
             degreeType != nil,
             specialty != nil,
             !subspecialties.isEmpty,
@@ -89,6 +90,7 @@ struct User: Identifiable, Codable, Hashable {
         case officePhone
         case nmaRegion, nmaRegionRole
         case isMentor, languagesSpoken, locationRegion
+        case npiStatus
     }
 
     // MARK: - Custom Decoding
@@ -104,6 +106,9 @@ struct User: Identifiable, Codable, Hashable {
         selectedSurgeryService  = try c.decodeIfPresent([String].self, forKey: .selectedSurgeryService)
         npiNumber               = try c.decodeIfPresent(String.self, forKey: .npiNumber)
         npiVerified             = try c.decodeIfPresent(Bool.self, forKey: .npiVerified) ?? false
+        // Older documents have no npiStatus; derive it from npiVerified.
+        npiStatus               = try c.decodeIfPresent(NPIStatus.self, forKey: .npiStatus)
+                                  ?? (npiVerified ? .verified : .none)
         degreeType              = try c.decodeIfPresent(DegreeType.self, forKey: .degreeType)
         specialty               = try c.decodeIfPresent(String.self, forKey: .specialty)
         subspecialties          = try c.decodeIfPresent([String].self, forKey: .subspecialties) ?? []
@@ -135,6 +140,7 @@ struct User: Identifiable, Codable, Hashable {
         self.username = username
         self.credentials = credentials
         self.npiVerified = false
+        self.npiStatus = .none
         self.subspecialties = []
         self.boardCertifications = []
         self.stateLicenses = []
@@ -167,4 +173,10 @@ enum PracticeType: String, Codable, CaseIterable {
     case research = "Research / Industry"
     case retired = "Retired"
     case resident = "Resident / Fellow in Training"
+}
+
+enum NPIStatus: String, Codable {
+    case verified
+    case pendingReview
+    case none
 }

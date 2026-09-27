@@ -16,6 +16,12 @@ class OnboardingViewModel: ObservableObject {
     @Published var npiNumber = ""
     @Published var lookupState: LookupState = .idle
     @Published var npiResult: NPIResult?
+    @Published var npiNameMatches = false
+
+    var npiStatus: NPIStatus {
+        guard npiResult != nil else { return .none }
+        return npiNameMatches ? .verified : .pendingReview
+    }
 
     // MARK: - Step 2: Credentials
     @Published var degreeType: DegreeType = .md
@@ -58,8 +64,10 @@ class OnboardingViewModel: ObservableObject {
         await MainActor.run { lookupState = .loading }
         do {
             let result = try await NPIService.lookup(npi: npiNumber)
+            let accountName = UserService.shared.currentUser?.fullname ?? ""
             await MainActor.run {
                 npiResult = result
+                npiNameMatches = NPIService.nameMatches(result, accountName: accountName)
                 lookupState = .success
                 if !result.specialty.isEmpty, specialty.isEmpty {
                     specialty = result.specialty
@@ -76,7 +84,11 @@ class OnboardingViewModel: ObservableObject {
                 }
             }
         } catch {
-            await MainActor.run { lookupState = .failure(error.localizedDescription) }
+            await MainActor.run {
+                npiResult = nil
+                npiNameMatches = false
+                lookupState = .failure(error.localizedDescription)
+            }
         }
     }
 
@@ -89,8 +101,10 @@ class OnboardingViewModel: ObservableObject {
         guard let uid = Auth.auth().currentUser?.uid else { return }
 
         var data: [String: Any] = [
-            "npiNumber":              npiNumber,
-            "npiVerified":            npiResult != nil,
+            // Only keep an NPI the registry recognized.
+            "npiNumber":              npiResult != nil ? npiNumber : "",
+            "npiVerified":            npiStatus == .verified,
+            "npiStatus":              npiStatus.rawValue,
             "degreeType":             degreeType.rawValue,
             "specialty":              specialty,
             "subspecialties":         subspecialties,

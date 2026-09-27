@@ -12,7 +12,9 @@ let backgroundColor = Color.black
 
 struct LoginView: View {
     @StateObject var viewModel = LoginViewModel()
-    @State private var showAlert = false
+    @ObservedObject private var authService = AuthService.shared
+    @State private var showResetPrompt = false
+    @State private var showResetResult = false
 
     var body: some View {
         NavigationView {
@@ -44,7 +46,19 @@ struct LoginView: View {
                     SecureField("Password", text: $viewModel.password)
                         .modifier(TextFieldModifier())
 
-                    Button {} label: {
+                    if let error = viewModel.loginError {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundColor(Color(red: 1, green: 0.45, blue: 0.45))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 12)
+                    }
+
+                    Button {
+                        viewModel.resetEmail = viewModel.email
+                        showResetPrompt = true
+                    } label: {
                         Text("Forgot password?")
                             .font(.footnote)
                             .foregroundColor(Color(white: 0.45))
@@ -56,26 +70,25 @@ struct LoginView: View {
                     Spacer().frame(height: 32)
 
                     Button {
-                        Task {
-                            await viewModel.login()
-                            if !viewModel.isAuthenticated { showAlert = true }
-                        }
+                        Task { await viewModel.login() }
                     } label: {
-                        Text("Log In")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .padding(.horizontal, 24)
+                        Group {
+                            if viewModel.isLoading {
+                                ProgressView().tint(.black)
+                            } else {
+                                Text("Log In")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color.white.opacity(viewModel.canSubmit || viewModel.isLoading ? 1 : 0.5))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 24)
                     }
-                    .alert("Login Failed", isPresented: $showAlert) {
-                        Button("OK", role: .cancel) {}
-                    } message: {
-                        Text(viewModel.loginError ?? "Please check your credentials and try again.")
-                    }
+                    .disabled(!viewModel.canSubmit)
 
                     Spacer()
 
@@ -97,6 +110,30 @@ struct LoginView: View {
             }
             .navigationBarHidden(true)
             .colorScheme(.dark)
+            .alert("Reset Password", isPresented: $showResetPrompt) {
+                TextField("Email", text: $viewModel.resetEmail)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.emailAddress)
+                Button("Send Link") {
+                    Task {
+                        await viewModel.sendPasswordReset()
+                        showResetResult = true
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Enter your account email and we'll send you a link to reset your password.")
+            }
+            .alert("Reset Password", isPresented: $showResetResult) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.resetResultMessage ?? "")
+            }
+            .alert("Account Deleted", isPresented: $authService.didDeleteAccount) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Your account and profile have been permanently deleted.")
+            }
         }
     }
 }

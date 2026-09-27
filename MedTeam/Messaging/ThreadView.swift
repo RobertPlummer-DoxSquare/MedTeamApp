@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ThreadView: View {
     @StateObject private var viewModel: ThreadViewModel
-    @State private var showReferralForm = false
     @State private var showProposalForm = false
     @FocusState private var inputFocused: Bool
 
@@ -15,14 +14,9 @@ struct ThreadView: View {
             Color.nmaBackground.ignoresSafeArea()
             VStack(spacing: 0) {
 
-                if viewModel.needsReferralCard {
-                    actionBanner(
-                        icon: "arrow.triangle.branch",
-                        color: PingType.referral.color,
-                        text: "Add patient details to begin the referral.",
-                        buttonLabel: "Add details"
-                    ) { showReferralForm = true }
-                } else if viewModel.needsProposalCard {
+                privacyNote
+
+                if viewModel.needsProposalCard {
                     actionBanner(
                         icon: "testtube.2",
                         color: PingType.collaboration.color,
@@ -72,7 +66,7 @@ struct ThreadView: View {
                     }
                 }
 
-                inputBar
+                footer
             }
         }
         .toolbar {
@@ -89,16 +83,84 @@ struct ThreadView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { viewModel.startListening() }
         .onDisappear { viewModel.stopListening() }
-        .sheet(isPresented: $showReferralForm) {
-            ReferralCardFormView { card in
-                Task { await viewModel.submitReferralCard(card) }
-            }
-        }
         .sheet(isPresented: $showProposalForm) {
             ProposalCardFormView { card in
                 Task { await viewModel.submitProposalCard(card) }
             }
         }
+    }
+
+    private var privacyNote: some View {
+        Label("Don't share patient information here.", systemImage: "lock.fill")
+            .font(.caption2)
+            .foregroundColor(.nmaSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(Color.nmaSubtle)
+    }
+
+    @ViewBuilder
+    private var footer: some View {
+        if viewModel.canRespond {
+            requestResponseBar
+        } else if viewModel.canMessage {
+            inputBar
+        } else {
+            statusBar
+        }
+    }
+
+    private var requestResponseBar: some View {
+        VStack(spacing: 10) {
+            Text("\(viewModel.conversation.otherParticipantName ?? "This member") sent you a \(viewModel.conversation.type.displayName.lowercased()) request.")
+                .font(.footnote).foregroundColor(.nmaSecondary)
+                .multilineTextAlignment(.center)
+            HStack(spacing: 12) {
+                Button {
+                    Task { await viewModel.respond(accept: false) }
+                } label: {
+                    Text("Decline")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity).frame(height: 44)
+                        .foregroundColor(.nmaPrimary)
+                        .background(Color.nmaSubtle)
+                        .cornerRadius(10)
+                }
+                Button {
+                    Task { await viewModel.respond(accept: true) }
+                } label: {
+                    Text("Accept")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity).frame(height: 44)
+                        .foregroundColor(.white)
+                        .background(Color.nmaPrimary)
+                        .cornerRadius(10)
+                }
+            }
+            .disabled(viewModel.isResponding)
+        }
+        .padding(12)
+        .background(Color.nmaSurface)
+        .overlay(alignment: .top) { Divider().background(Color.nmaBorder) }
+    }
+
+    private var statusBar: some View {
+        let text: String
+        switch viewModel.conversation.status {
+        case .pending:
+            text = "Waiting for \(viewModel.conversation.otherParticipantName ?? "them") to accept your request."
+        case .declined:
+            text = viewModel.isRequester ? "Your request was declined." : "You declined this request."
+        default:
+            text = "This conversation is closed."
+        }
+        return Text(text)
+            .font(.footnote).foregroundColor(.nmaSecondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(16)
+            .background(Color.nmaSurface)
+            .overlay(alignment: .top) { Divider().background(Color.nmaBorder) }
     }
 
     private var inputBar: some View {

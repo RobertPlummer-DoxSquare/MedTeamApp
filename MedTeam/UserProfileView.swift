@@ -5,42 +5,22 @@
 
 import SwiftUI
 
-struct UserProfileView: View {
-    let user: User
-    @State private var showPingSheet = false
+// MARK: - Shared Profile Content
 
-    private var canMessage: Bool {
-        user.isOpenToReferrals || user.isMentor || user.isOpenToCollaboration
-    }
+/// The profile layout used both for your own profile and for other members.
+struct ProfileContent: View {
+    let user: User
 
     var body: some View {
-        ZStack {
-            Color.nmaBackground.ignoresSafeArea()
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    profileHeader
-                    if canMessage { messageButton }
-                    profileBody
-                }
-            }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showPingSheet) {
-            PingSheetView(targetUser: user)
+        VStack(spacing: 0) {
+            header
+            details
         }
     }
 
-    // MARK: - Header
-
-    private var profileHeader: some View {
+    private var header: some View {
         VStack(spacing: 12) {
-            Circle()
-                .fill(Color.nmaSubtle)
-                .frame(width: 80, height: 80)
-                .overlay(
-                    Text(initials(for: user.fullname))
-                        .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaSecondary)
-                )
+            ProfileAvatar(user: user, size: 80)
                 .padding(.top, 20)
 
             VStack(spacing: 4) {
@@ -49,121 +29,83 @@ struct UserProfileView: View {
                         .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
                     if user.npiVerified {
                         Image(systemName: "checkmark.seal.fill")
-                            .foregroundColor(.blue).font(.subheadline)
+                            .foregroundColor(.regionBlue).font(.subheadline)
+                            .accessibilityLabel("Verified")
                     }
                 }
-                Text("@\(user.username)")
+                Text(user.credentials)
                     .font(.subheadline).foregroundColor(Color.nmaSecondary)
             }
 
-            // Specialty + Practice type chips
             HStack(spacing: 8) {
-                if let specialty = user.specialty { infoChip(specialty) }
-                if let pt = user.practiceType {
-                    infoChip(pt.rawValue)
-                }
+                if let specialty = user.specialty, !specialty.isEmpty { infoChip(specialty) }
+                if let pt = user.practiceType { infoChip(pt.rawValue) }
             }
 
             if let institution = user.currentInstitution, !institution.isEmpty {
                 Text(institution).font(.subheadline).foregroundColor(Color.nmaSecondary)
             }
 
-            // Region badge
-            if let region = user.nmaRegion {
-                HStack(spacing: 6) {
-                    regionBadge(region)
-                    if user.isChairperson {
-                        chairBadge
-                    }
-                }
-            }
-
-            // License states
-            if !user.stateLicenses.isEmpty {
-                Text(user.stateLicenses.joined(separator: " · "))
-                    .font(.caption).foregroundColor(Color.nmaSecondary.opacity(0.7))
-            }
-
-            // Availability badges
             availabilityBadges
         }
+        .padding(.horizontal, 20)
         .padding(.bottom, 20)
     }
 
     @ViewBuilder
     private var availabilityBadges: some View {
-        let hasAny = user.isOpenToReferrals || user.isOpenToCollaboration || user.isMentor
-        if hasAny {
+        if user.isOpenToReferrals || user.isOpenToCollaboration || user.isMentor {
             HStack(spacing: 8) {
-                if user.isOpenToReferrals {
-                    availBadge("Referrals: Call my office", icon: "phone.circle",
-                               fg: Color.referralGreen, bg: Color.referralGreenBackground)
+                if user.isMentor {
+                    availBadge("Mentoring", icon: "graduationcap",
+                               fg: .regionBlue, bg: .regionBlueBackground)
                 }
                 if user.isOpenToCollaboration {
                     availBadge("Research", icon: "flask",
-                               fg: Color.researchPurple, bg: Color.researchPurpleBackground)
+                               fg: .researchPurple, bg: .researchPurpleBackground)
                 }
-                if user.isMentor {
-                    availBadge("Mentor", icon: "graduationcap",
-                               fg: Color.nmaSecondary, bg: Color.nmaSubtle)
+                if user.isOpenToReferrals {
+                    availBadge("Referrals", icon: "phone",
+                               fg: .referralGreen, bg: .referralGreenBackground)
                 }
             }
             .padding(.top, 4)
         }
     }
 
-    // MARK: - Message Button
-
-    private var messageButton: some View {
-        Button { showPingSheet = true } label: {
-            Text("Message \(user.fullname.components(separatedBy: " ").first ?? user.fullname)")
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity).frame(height: 48)
-                .background(Color.nmaPrimary)
-                .foregroundColor(.white)
-                .cornerRadius(12)
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-    }
-
-    // MARK: - Body
-
-    private var profileBody: some View {
+    private var details: some View {
         VStack(spacing: 0) {
             separator
 
             if let region = user.nmaRegion {
-                profileSection(title: "NMA Region") {
+                section("NMA Region") {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 6) {
                             regionBadge(region)
                             if user.isChairperson { chairBadge }
                         }
-                        .padding(.horizontal, 24)
                         Text("Chair: \(region.chairName)")
                             .font(.caption).foregroundColor(Color.nmaSecondary)
-                            .padding(.horizontal, 24)
                         if region.nextMeeting != "TBD" {
                             Text("Next meeting: \(region.nextMeeting)")
-                                .font(.caption).foregroundColor(Color.nmaSecondary.opacity(0.7))
-                                .padding(.horizontal, 24)
+                                .font(.caption).foregroundColor(Color.nmaSecondary)
                         }
                     }
-                    .padding(.bottom, 4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
                 }
                 separator
             }
 
-            if user.medicalSchool != nil || user.residencyProgram != nil {
-                profileSection(title: "Training") {
-                    if let school = user.medicalSchool {
+            if user.medicalSchool?.isEmpty == false || user.residencyProgram?.isEmpty == false {
+                section("Training") {
+                    if let school = user.medicalSchool, !school.isEmpty {
                         trainingRow(title: school, detail: user.medicalSchoolGradYear.map { "Class of \($0)" })
                     }
-                    if let res = user.residencyProgram {
+                    if let res = user.residencyProgram, !res.isEmpty {
                         trainingRow(title: res, detail: user.residencyCompletionYear.map { "Residency · \($0)" })
                     }
-                    if let fel = user.fellowshipProgram {
+                    if let fel = user.fellowshipProgram, !fel.isEmpty {
                         trainingRow(title: fel, detail: user.fellowshipCompletionYear.map { "Fellowship · \($0)" })
                     }
                 }
@@ -171,27 +113,36 @@ struct UserProfileView: View {
             }
 
             if !user.boardCertifications.isEmpty {
-                profileSection(title: "Board Certifications") {
+                section("Board Certifications") {
                     ForEach(user.boardCertifications, id: \.self) { cert in
                         Text(cert).font(.subheadline).foregroundColor(Color.nmaPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 24).padding(.vertical, 4)
+                            .padding(.horizontal, 24).padding(.vertical, 2)
                     }
                 }
                 separator
             }
 
+            if !user.stateLicenses.isEmpty {
+                section("State Licenses") {
+                    Text(user.stateLicenses.joined(separator: " · "))
+                        .font(.subheadline).foregroundColor(Color.nmaPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 24)
+                }
+                separator
+            }
+
             if !user.languagesSpoken.isEmpty {
-                profileSection(title: "Languages") {
+                section("Languages") {
                     Text(user.languagesSpoken.joined(separator: " · "))
-                        .font(.subheadline).foregroundColor(Color.nmaSecondary)
+                        .font(.subheadline).foregroundColor(Color.nmaPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 24)
                 }
                 separator
             }
         }
-        .padding(.bottom, 40)
     }
 
     // MARK: - Helpers
@@ -201,7 +152,7 @@ struct UserProfileView: View {
     }
 
     @ViewBuilder
-    private func profileSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title).font(.caption).fontWeight(.semibold)
                 .foregroundColor(Color.nmaSecondary)
@@ -210,7 +161,6 @@ struct UserProfileView: View {
         }
     }
 
-    @ViewBuilder
     private func trainingRow(title: String, detail: String?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.subheadline).foregroundColor(Color.nmaPrimary)
@@ -220,7 +170,6 @@ struct UserProfileView: View {
         .padding(.horizontal, 24).padding(.vertical, 2)
     }
 
-    @ViewBuilder
     private func infoChip(_ label: String) -> some View {
         Text(label).font(.caption).fontWeight(.medium)
             .foregroundColor(Color.nmaSecondary)
@@ -228,7 +177,6 @@ struct UserProfileView: View {
             .background(Color.nmaSubtle).cornerRadius(8)
     }
 
-    @ViewBuilder
     private func regionBadge(_ region: NMARegion) -> some View {
         Text(region.displayName)
             .font(.caption).fontWeight(.medium)
@@ -241,13 +189,12 @@ struct UserProfileView: View {
     private var chairBadge: some View {
         Label("Chairperson", systemImage: "star.fill")
             .font(.caption).fontWeight(.medium)
-            .foregroundColor(Color.chairGold)
+            .foregroundColor(.chairGold)
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(Color.chairGoldBackground)
             .cornerRadius(6)
     }
 
-    @ViewBuilder
     private func availBadge(_ label: String, icon: String, fg: Color, bg: Color) -> some View {
         Label(label, systemImage: icon)
             .font(.caption).fontWeight(.medium)
@@ -255,8 +202,111 @@ struct UserProfileView: View {
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(bg).cornerRadius(6)
     }
+}
 
-    private func initials(for name: String) -> String {
-        name.components(separatedBy: " ").compactMap { $0.first }.prefix(2).map(String.init).joined()
+// MARK: - Avatar
+
+/// Profile photo when available, otherwise initials.
+struct ProfileAvatar: View {
+    let user: User
+    let size: CGFloat
+
+    var body: some View {
+        Group {
+            if let urlString = user.profileImageUrl, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    if case .success(let image) = phase {
+                        image.resizable().scaledToFill()
+                    } else {
+                        initials
+                    }
+                }
+            } else {
+                initials
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+        .accessibilityLabel("Photo of \(user.fullname)")
+    }
+
+    private var initials: some View {
+        Circle()
+            .fill(Color.regionBlueBackground)
+            .overlay(
+                Text(user.fullname.components(separatedBy: " ").compactMap { $0.first }
+                        .prefix(2).map(String.init).joined())
+                    .font(size > 50 ? .title3 : .caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.regionBlue)
+            )
+    }
+}
+
+// MARK: - Another Member's Profile
+
+struct UserProfileView: View {
+    let user: User
+    @State private var showConnectSheet = false
+
+    private var canConnect: Bool { user.isMentor || user.isOpenToCollaboration }
+
+    private var officePhoneURL: URL? {
+        guard user.isOpenToReferrals, let phone = user.officePhone, !phone.isEmpty else { return nil }
+        return URL(string: "tel:\(phone.filter { $0.isNumber || $0 == "+" })")
+    }
+
+    var body: some View {
+        ZStack {
+            Color.nmaBackground.ignoresSafeArea()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    ProfileContent(user: user)
+                    actions
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 24)
+                }
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showConnectSheet) {
+            ConnectSheetView(targetUser: user)
+        }
+    }
+
+    @ViewBuilder
+    private var actions: some View {
+        VStack(spacing: 10) {
+            if canConnect {
+                Button { showConnectSheet = true } label: {
+                    Label("Connect", systemImage: "person.badge.plus")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity).frame(height: 48)
+                        .background(Color.nmaPrimary)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+            }
+
+            if let url = officePhoneURL {
+                Link(destination: url) {
+                    Label("Call office for referrals", systemImage: "phone.fill")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity).frame(height: 48)
+                        .background(Color.referralGreenBackground)
+                        .foregroundColor(.referralGreen)
+                        .cornerRadius(12)
+                }
+            }
+
+            if !canConnect && officePhoneURL == nil {
+                Text("Not accepting requests right now")
+                    .font(.subheadline).fontWeight(.medium)
+                    .frame(maxWidth: .infinity).frame(height: 48)
+                    .background(Color.nmaSubtle)
+                    .foregroundColor(Color.nmaSecondary)
+                    .cornerRadius(12)
+            }
+        }
     }
 }

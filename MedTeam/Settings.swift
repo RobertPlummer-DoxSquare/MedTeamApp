@@ -68,38 +68,38 @@ struct Settings: View {
                 }
 
                 Section {
-                    Toggle("Accept referral notifications", isOn: $viewModel.isOpenToReferrals)
-                        .onChange(of: viewModel.isOpenToReferrals) { on in
-                            guard on != viewModel.user?.isOpenToReferrals else { return }
-                            saver.save(["isAcceptingReferrals": on])
+                    Toggle("Open to mentoring", isOn: $viewModel.isMentor)
+                        .onChange(of: viewModel.isMentor) { on in
+                            guard on != viewModel.user?.isMentor else { return }
+                            saver.save(["isMentor": on])
                         }
 
-                    if viewModel.isOpenToReferrals {
-                        TextField("Office phone", text: $viewModel.officePhone)
-                            .keyboardType(.phonePad)
-                            .textContentType(.telephoneNumber)
-                            .foregroundColor(.nmaPrimary)
-                            .onChange(of: viewModel.officePhone) { phone in
-                                guard phone != (viewModel.user?.officePhone ?? "") else { return }
-                                saver.save(["officePhone": phone], after: .milliseconds(800))
-                            }
-                    }
-
-                    Toggle("Open to research collaboration", isOn: $viewModel.openToCollaboration)
+                    Toggle("Open to collaboration", isOn: $viewModel.openToCollaboration)
                         .onChange(of: viewModel.openToCollaboration) { on in
                             guard on != viewModel.user?.isOpenToCollaboration else { return }
                             saver.save(["isOpenToCollaboration": on])
                         }
 
-                    Toggle("Available as mentor", isOn: $viewModel.isMentor)
-                        .onChange(of: viewModel.isMentor) { on in
-                            guard on != viewModel.user?.isMentor else { return }
-                            saver.save(["isMentor": on])
+                    Toggle("Accepting referrals", isOn: $viewModel.isOpenToReferrals)
+                        .disabled(viewModel.officePhone.trimmingCharacters(in: .whitespaces).isEmpty
+                                  && !viewModel.isOpenToReferrals)
+                        .onChange(of: viewModel.isOpenToReferrals) { on in
+                            guard on != viewModel.user?.isOpenToReferrals else { return }
+                            saver.save(["isAcceptingReferrals": on])
+                        }
+
+                    TextField("Office phone", text: $viewModel.officePhone)
+                        .keyboardType(.phonePad)
+                        .textContentType(.telephoneNumber)
+                        .foregroundColor(.nmaPrimary)
+                        .onChange(of: viewModel.officePhone) { phone in
+                            guard phone != (viewModel.user?.officePhone ?? "") else { return }
+                            saver.save(["officePhone": phone], after: .milliseconds(800))
                         }
                 } header: {
                     Text("Availability")
                 } footer: {
-                    Text("Changes save automatically.")
+                    Text("Referrals happen by phone: members see a \"Call office\" button on your profile. Add an office phone to turn on referrals. Changes save automatically.")
                 }
                 .tint(Color.nmaPrimary)
 

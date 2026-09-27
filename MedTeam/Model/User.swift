@@ -75,6 +75,19 @@ struct User: Identifiable, Codable, Hashable {
         nmaRegionRole == .chairperson
     }
 
+    /// "Dr. Smith" for physicians (MD/DO), otherwise the full name.
+    var formalName: String {
+        let physicianDegrees: Set<String> = ["MD", "DO"]
+        let credentialTokens = credentials.uppercased()
+            .components(separatedBy: CharacterSet.letters.inverted)
+        let isPhysician = degreeType == .md || degreeType == .doOsteopathic
+            || credentialTokens.contains { physicianDegrees.contains($0) }
+        let suffixes: Set<String> = ["jr", "jr.", "sr", "sr.", "ii", "iii", "iv"]
+        let lastName = fullname.split(separator: " ").map(String.init)
+            .last { !suffixes.contains($0.lowercased()) } ?? fullname
+        return isPhysician ? "Dr. \(lastName)" : fullname
+    }
+
     // MARK: - CodingKeys
     enum CodingKeys: String, CodingKey {
         case id, email, fullname, username, credentials, profileImageUrl

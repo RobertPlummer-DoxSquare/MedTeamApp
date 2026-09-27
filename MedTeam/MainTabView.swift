@@ -8,8 +8,7 @@ import SwiftUI
 let backgroundF = Color.clear
 
 struct MainTabView: View {
-    @StateObject private var pingInboxVM = PingInboxViewModel()
-    @StateObject private var conversationVM = ConversationListViewModel()
+    @StateObject private var inboxVM = InboxViewModel()
     @State private var selectedTab = 0
 
     init() {
@@ -45,30 +44,20 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             MemberDirectoryView()
-                .tabItem { Label("Directory", systemImage: selectedTab == 0 ? "person.2.fill" : "person.2") }
+                .tabItem { Label("Find", systemImage: "magnifyingglass") }
                 .tag(0)
 
-            PingInboxView()
-                .tabItem { Label("Notifications", systemImage: selectedTab == 1 ? "bell.fill" : "bell") }
-                .badge(pingInboxVM.unreadCount)
+            InboxView(viewModel: inboxVM)
+                .tabItem { Label("Inbox", systemImage: selectedTab == 1 ? "tray.fill" : "tray") }
+                .badge(inboxVM.unreadCount)
                 .tag(1)
 
-            ConversationListView(viewModel: conversationVM)
-                .tabItem { Label("Messages", systemImage: selectedTab == 2 ? "message.fill" : "message") }
-                .tag(2)
-
             CurrentUserProfileView()
-                .tabItem { Label("Profile", systemImage: selectedTab == 3 ? "person.fill" : "person") }
-                .tag(3)
+                .tabItem { Label("Me", systemImage: selectedTab == 2 ? "person.fill" : "person") }
+                .tag(2)
         }
         .tint(Color.nmaPrimary)
-        .onAppear {
-            pingInboxVM.startListening()
-            conversationVM.startListening()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .switchToMessages)) { _ in
-            selectedTab = 2
-        }
+        .onAppear { inboxVM.startListening() }
     }
 }
 

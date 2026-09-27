@@ -12,20 +12,6 @@ class PingService {
     private let db = Firestore.firestore()
 
     @discardableResult
-    func sendPing(to toUserId: String, type: PingType, note: String?) async throws -> String {
-        guard let fromUserId = Auth.auth().currentUser?.uid else { return "" }
-        let ping = Ping(
-            fromUserId: fromUserId,
-            toUserId: toUserId,
-            type: type,
-            note: note?.isEmpty == true ? nil : note,
-            status: .pending,
-            createdAt: Date()
-        )
-        let ref = try db.collection("pings").addDocument(from: ping)
-        return ref.documentID
-    }
-
     func fetchReceivedPings(completion: @escaping ([Ping]) -> Void) -> ListenerRegistration {
         guard let uid = Auth.auth().currentUser?.uid else {
             completion([])
@@ -60,20 +46,10 @@ class PingService {
             }
     }
 
-    func updateStatus(_ pingId: String, status: PingStatus) async throws {
-        try await db.collection("pings").document(pingId).updateData([
-            "status": status.rawValue
-        ])
-    }
-
     func markRead(_ pingId: String) async throws {
         try await db.collection("pings").document(pingId).updateData([
             "readAt": Timestamp(date: Date())
         ])
-    }
-
-    func unreadCount(from pings: [Ping]) -> Int {
-        pings.filter { $0.status == .pending && $0.readAt == nil }.count
     }
 
     private func attachUsers(to pings: [Ping], idKeyPath: KeyPath<Ping, String>, writing: WritableKeyPath<Ping, User?> = \.fromUser) async -> [Ping] {

@@ -6,67 +6,81 @@ class MessagingService {
     static let shared = MessagingService()
     private let db = Firestore.firestore()
 
-    func createConversation(from ping: Ping) async throws -> String {
-        guard let pingId = ping.id else { throw MessagingError.missingPingId }
-
-        var participantNames: [String: String] = [:]
-        participantNames[ping.fromUserId] = ping.fromUser?.fullname ?? "Unknown"
-        if let currentUser = UserService.shared.currentUser {
-            participantNames[ping.toUserId] = currentUser.fullname
-        }
+    /// Sends a mentorship or collaboration request as a pending conversation.
+    func sendRequest(to target: User, type: PingType, note: String) async throws {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let myName = UserService.shared.currentUser?.fullname ?? "Unknown"
+        let now = Timestamp(date: Date())
+        let summary = "\(type.displayName) request"
 
         let ref = db.collection("conversations").document()
-        let data: [String: Any] = [
-            "pingId": pingId,
-            "type": ping.type.rawValue,
-            "participantIds": [ping.fromUserId, ping.toUserId],
-            "status": ConversationStatus.active.rawValue,
-            "createdAt": Timestamp(date: Date()),
-            "lastMessage": "\(ping.type.displayName) thread opened",
-            "lastMessageAt": Timestamp(date: Date()),
-            "participantNames": participantNames
-        ]
-        try await ref.setData(data)
-
-        let systemMsg: [String: Any] = [
+        try await ref.setData([
+            "type": type.rawValue,
+            "requesterId": uid,
+            "participantIds": [uid, target.id],
+            "participantNames": [uid: myName, target.id: target.fullname],
+            "status": ConversationStatus.pending.rawValue,
+            "createdAt": now,
+            "lastMessage": note.isEmpty ? summary : note,
+            "lastMessageAt": now,
+            "lastMessageSenderId": uid,
+            "lastReadAt": [uid: now]
+        ])
+        try await ref.collection("messages").addDocument(data: [
             "senderId": "system",
-            "text": "\(ping.type.displayName) thread opened",
+            "text": "\(myName) sent a \(type.displayName.lowercased()) request",
             "type": Message.MessageType.system.rawValue,
-            "createdAt": Timestamp(date: Date()),
-            "readBy": [ping.toUserId]
-        ]
-        try await ref.collection("messages").addDocument(data: systemMsg)
-        return ref.documentID
+            "createdAt": now,
+            "readBy": [uid]
+        ])
+        if !note.isEmpty {
+            try await ref.collection("messages").addDocument(data: [
+                "senderId": uid,
+                "text": note,
+                "type": Message.MessageType.text.rawValue,
+                "createdAt": Timestamp(date: Date()),
+                "readBy": [uid]
+            ])
+        }
     }
 
-    func createConversationForPing(
-        pingId: String,
-        fromUserId: String,
-        toUserId: String,
-        type: PingType,
-        fromUserName: String,
-        toUserName: String
-    ) async throws {
-        let ref = db.collection("conversations").document()
-        let data: [String: Any] = [
-            "pingId": pingId,
-            "type": type.rawValue,
-            "participantIds": [fromUserId, toUserId],
-            "status": ConversationStatus.active.rawValue,
-            "createdAt": Timestamp(date: Date()),
-            "lastMessage": "\(type.displayName) thread opened",
-            "lastMessageAt": Timestamp(date: Date()),
-            "participantNames": [fromUserId: fromUserName, toUserId: toUserName]
-        ]
-        try await ref.setData(data)
-        let systemMsg: [String: Any] = [
+    /// Receiver accepts or declines a pending request.
+    func respondToRequest(conversationId: String, accept: Bool) async throws {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let text = accept ? "Request accepted" : "Request declined"
+        let now = Timestamp(date: Date())
+        let ref = db.collection("conversations").document(conversationId)
+        try await ref.updateData([
+            "status": (accept ? ConversationStatus.active : .declined).rawValue,
+            "lastMessage": text,
+            "lastMessageAt": now,
+            "lastMessageSenderId": uid,
+            "lastReadAt.\(uid)": now
+        ])
+        try await ref.collection("messages").addDocument(data: [
             "senderId": "system",
-            "text": "\(type.displayName) thread opened",
+            "text": text,
             "type": Message.MessageType.system.rawValue,
-            "createdAt": Timestamp(date: Date()),
-            "readBy": [toUserId]
-        ]
-        try await ref.collection("messages").addDocument(data: systemMsg)
+            "createdAt": now,
+            "readBy": [uid]
+        ])
+    }
+
+    func markRead(conversationId: String) async throws {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        try await db.collection("conversations").document(conversationId)
+            .updateData(["lastReadAt.\(uid)": Timestamp(date: Date())])
+    }
+
+    func listenToConversation(id: String, completion: @escaping (Conversation) -> Void) -> ListenerRegistration {
+        let uid = Auth.auth().currentUser?.uid ?? ""
+        return db.collection("conversations").document(id).addSnapshotListener { snapshot, _ in
+            guard var convo = try? snapshot?.data(as: Conversation.self) else { return }
+            if let other = convo.otherParticipantId(for: uid) {
+                convo.otherParticipantName = convo.participantNames?[other]
+            }
+            DispatchQueue.main.async { completion(convo) }
+        }
     }
 
     func fetchConversations(completion: @escaping ([Conversation]) -> Void) -> ListenerRegistration {
@@ -113,35 +127,13 @@ class MessagingService {
         ]
         try await db.collection("conversations").document(conversationId)
             .collection("messages").addDocument(data: msgData)
+        let now = Timestamp(date: Date())
         try await db.collection("conversations").document(conversationId).updateData([
             "lastMessage": text,
-            "lastMessageAt": Timestamp(date: Date())
+            "lastMessageAt": now,
+            "lastMessageSenderId": uid,
+            "lastReadAt.\(uid)": now
         ])
-    }
-
-    func submitReferralCard(_ card: ReferralCard, conversationId: String) async throws {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        var dict: [String: Any] = ["isConfirmed": false]
-        if let age    = card.patientAge         { dict["patientAge"] = age }
-        if let dx     = card.diagnosis          { dict["diagnosis"] = dx }
-        if let reason = card.reasonForReferral  { dict["reasonForReferral"] = reason }
-        if let urg    = card.urgency            { dict["urgency"] = urg.rawValue }
-        if let ins    = card.insurance          { dict["insurance"] = ins }
-
-        try await db.collection("conversations").document(conversationId).updateData([
-            "referralCard": dict,
-            "lastMessage": "Referral details submitted",
-            "lastMessageAt": Timestamp(date: Date())
-        ])
-        let msgData: [String: Any] = [
-            "senderId": uid,
-            "text": "Referral details submitted",
-            "type": Message.MessageType.referralCard.rawValue,
-            "createdAt": Timestamp(date: Date()),
-            "readBy": [uid]
-        ]
-        try await db.collection("conversations").document(conversationId)
-            .collection("messages").addDocument(data: msgData)
     }
 
     func submitProposalCard(_ card: ProposalCard, conversationId: String) async throws {
@@ -175,6 +167,3 @@ class MessagingService {
     }
 }
 
-enum MessagingError: Error {
-    case missingPingId
-}

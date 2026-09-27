@@ -70,22 +70,19 @@
 		AC9F41382C2A5EB100E52D4E /* FirebaseVertexAI-Preview in Frameworks */ = {isa = PBXBuildFile; productRef = AC9F41372C2A5EB100E52D4E /* FirebaseVertexAI-Preview */; };
 		BB01PING2C37043D00981F01 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F01 /* Ping.swift */; };
 		BB01PING2C37043D00981F02 /* PingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F02 /* PingService.swift */; };
-		BB01PING2C37043D00981F03 /* PingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F03 /* PingViewModel.swift */; };
-		BB01PING2C37043D00981F04 /* PingInboxViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F04 /* PingInboxViewModel.swift */; };
-		BB01PING2C37043D00981F05 /* PingSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F05 /* PingSheetView.swift */; };
-		BB01PING2C37043D00981F06 /* PingInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F06 /* PingInboxView.swift */; };
+		BB01PING2C37043D00981F03 /* ConnectViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F03 /* ConnectViewModel.swift */; };
+		BB01PING2C37043D00981F05 /* ConnectSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F05 /* ConnectSheetView.swift */; };
 		BB01PING2C37043D00981F07 /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F07 /* UserProfileView.swift */; };
 		BB01PING2C37043D00981F08 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F08 /* Date+Extensions.swift */; };
 		BB0MSG2C37043D00981F01 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F01 /* Conversation.swift */; };
 		BB0MSG2C37043D00981F02 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F02 /* Message.swift */; };
 		BB0MSG2C37043D00981F03 /* Notification+Names.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F03 /* Notification+Names.swift */; };
 		BB0MSG2C37043D00981F04 /* MessagingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F04 /* MessagingService.swift */; };
-		BB0MSG2C37043D00981F05 /* ConversationListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */; };
-		BB0MSG2C37043D00981F06 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F06 /* ConversationListView.swift */; };
+		BB0MSG2C37043D00981F05 /* InboxViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F05 /* InboxViewModel.swift */; };
+		BB0MSG2C37043D00981F06 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F06 /* InboxView.swift */; };
 		BB0MSG2C37043D00981F07 /* ThreadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */; };
 		BB0MSG2C37043D00981F08 /* ThreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F08 /* ThreadView.swift */; };
 		BB0MSG2C37043D00981F09 /* ReferralCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F09 /* ReferralCardView.swift */; };
-		BB0MSG2C37043D00981F0A /* ReferralCardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */; };
 		BB0MSG2C37043D00981F0B /* ProposalCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0B /* ProposalCardView.swift */; };
 		BB0MSG2C37043D00981F0C /* ProposalCardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */; };
 		BB0MSG4C37043D00981F03 /* RegionMapHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG3C37043D00981F03 /* RegionMapHeaderView.swift */; };
@@ -131,22 +128,19 @@
 		AC9F40FE2C2A5CEC00E52D4E /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BB01PING1C37043D00981F01 /* Ping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ping.swift; sourceTree = "<group>"; };
 		BB01PING1C37043D00981F02 /* PingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingService.swift; sourceTree = "<group>"; };
-		BB01PING1C37043D00981F03 /* PingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingViewModel.swift; sourceTree = "<group>"; };
-		BB01PING1C37043D00981F04 /* PingInboxViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingInboxViewModel.swift; sourceTree = "<group>"; };
-		BB01PING1C37043D00981F05 /* PingSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingSheetView.swift; sourceTree = "<group>"; };
-		BB01PING1C37043D00981F06 /* PingInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingInboxView.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F03 /* ConnectViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectViewModel.swift; sourceTree = "<group>"; };
+		BB01PING1C37043D00981F05 /* ConnectSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectSheetView.swift; sourceTree = "<group>"; };
 		BB01PING1C37043D00981F07 /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
 		BB01PING1C37043D00981F08 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F01 /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F02 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F03 /* Notification+Names.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification+Names.swift"; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F04 /* MessagingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagingService.swift; sourceTree = "<group>"; };
-		BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListViewModel.swift; sourceTree = "<group>"; };
-		BB0MSG1C37043D00981F06 /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F05 /* InboxViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxViewModel.swift; sourceTree = "<group>"; };
+		BB0MSG1C37043D00981F06 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadViewModel.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F08 /* ThreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadView.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F09 /* ReferralCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralCardView.swift; sourceTree = "<group>"; };
-		BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralCardFormView.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F0B /* ProposalCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalCardView.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalCardFormView.swift; sourceTree = "<group>"; };
 		BB0MSG3C37043D00981F03 /* RegionMapHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RegionMapHeaderView.swift; path = MedTeam/Directory/RegionMapHeaderView.swift; sourceTree = SOURCE_ROOT; };
@@ -408,10 +402,8 @@
 			children = (
 				AC9F40F12C2A4B1E00E52D4E /* MainTabView.swift */,
 				AC50FDC62C2BA24D007EB55B /* Hamburger.swift */,
-				BB01PING1C37043D00981F03 /* PingViewModel.swift */,
-				BB01PING1C37043D00981F04 /* PingInboxViewModel.swift */,
-				BB01PING1C37043D00981F05 /* PingSheetView.swift */,
-				BB01PING1C37043D00981F06 /* PingInboxView.swift */,
+				BB01PING1C37043D00981F03 /* ConnectViewModel.swift */,
+				BB01PING1C37043D00981F05 /* ConnectSheetView.swift */,
 			);
 			name = MainTab;
 			sourceTree = "<group>";
@@ -447,12 +439,11 @@
 		BB0MSG3C37043D00981F01 /* Messaging */ = {
 			isa = PBXGroup;
 			children = (
-				BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */,
-				BB0MSG1C37043D00981F06 /* ConversationListView.swift */,
+				BB0MSG1C37043D00981F05 /* InboxViewModel.swift */,
+				BB0MSG1C37043D00981F06 /* InboxView.swift */,
 				BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */,
 				BB0MSG1C37043D00981F08 /* ThreadView.swift */,
 				BB0MSG1C37043D00981F09 /* ReferralCardView.swift */,
-				BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */,
 				BB0MSG1C37043D00981F0B /* ProposalCardView.swift */,
 				BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */,
 			);
@@ -604,10 +595,8 @@
 				AC9F40E82C2A175900E52D4E /* AuthService.swift in Sources */,
 				BB01PING2C37043D00981F01 /* Ping.swift in Sources */,
 				BB01PING2C37043D00981F02 /* PingService.swift in Sources */,
-				BB01PING2C37043D00981F03 /* PingViewModel.swift in Sources */,
-				BB01PING2C37043D00981F04 /* PingInboxViewModel.swift in Sources */,
-				BB01PING2C37043D00981F05 /* PingSheetView.swift in Sources */,
-				BB01PING2C37043D00981F06 /* PingInboxView.swift in Sources */,
+				BB01PING2C37043D00981F03 /* ConnectViewModel.swift in Sources */,
+				BB01PING2C37043D00981F05 /* ConnectSheetView.swift in Sources */,
 				BB01PING2C37043D00981F07 /* UserProfileView.swift in Sources */,
 				BB01PING2C37043D00981F08 /* Date+Extensions.swift in Sources */,
 				BB0MSG2C37043D00981F01 /* Conversation.swift in Sources */,
@@ -615,14 +604,13 @@
 				BB0MSG2C37043D00981F03 /* Notification+Names.swift in Sources */,
 				BB0MSG2C37043D00981F04 /* MessagingService.swift in Sources */,
 				AC2FE8DC2FAAB51100D12943 /* MemberDirectoryView.swift in Sources */,
-				BB0MSG2C37043D00981F05 /* ConversationListViewModel.swift in Sources */,
+				BB0MSG2C37043D00981F05 /* InboxViewModel.swift in Sources */,
 				AC2FE8D92FAAB4A700D12943 /* NMATheme.swift in Sources */,
 				BB0A5A022FB0000000D12943 /* AutoSaver.swift in Sources */,
-				BB0MSG2C37043D00981F06 /* ConversationListView.swift in Sources */,
+				BB0MSG2C37043D00981F06 /* InboxView.swift in Sources */,
 				BB0MSG2C37043D00981F07 /* ThreadViewModel.swift in Sources */,
 				BB0MSG2C37043D00981F08 /* ThreadView.swift in Sources */,
 				BB0MSG2C37043D00981F09 /* ReferralCardView.swift in Sources */,
-				BB0MSG2C37043D00981F0A /* ReferralCardFormView.swift in Sources */,
 				BB0MSG2C37043D00981F0B /* ProposalCardView.swift in Sources */,
 				BB0MSG2C37043D00981F0C /* ProposalCardFormView.swift in Sources */,
 				BB0MSG4C37043D00981F03 /* RegionMapHeaderView.swift in Sources */,

@@ -198,9 +198,8 @@ struct MemberRowView: View {
                     Text(user.fullname)
                         .font(.subheadline).fontWeight(.semibold)
                         .foregroundColor(.nmaPrimary)
-                    if user.npiVerified {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.caption).foregroundColor(.blue)
+                    if user.isVerified {
+                        VerificationBadge(memberType: user.memberType, compact: true)
                     }
                     if user.isChairperson {
                         Text("Chair")

@@ -16,7 +16,7 @@ class RegistrationViewModel: ObservableObject {
     @Published var password = ""
     @Published var fullname = ""
     @Published var username = ""
-    @Published var credentials = "MD, RN, PA, Student"
+    @Published var credentials = ""
     
     @Published var errorMessage: String?
     @Published var isLoading = false

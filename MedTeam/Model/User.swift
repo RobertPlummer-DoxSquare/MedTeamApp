@@ -18,10 +18,14 @@ struct User: Identifiable, Codable, Hashable {
     var bio: String?
     var selectedSurgeryService: [String]?
 
-    // MARK: - Identity & Verification
+    // MARK: - Membership & Verification
+    var memberType: MemberType
+    var onboardingCompleted: Bool
     var npiNumber: String?
     var npiVerified: Bool
     var npiStatus: NPIStatus
+    var schoolEmail: String?
+    var studentVerified: Bool
 
     // MARK: - Role & Specialty
     var degreeType: DegreeType?
@@ -55,20 +59,20 @@ struct User: Identifiable, Codable, Hashable {
     var locationRegion: String?
 
     // MARK: - Computed (not stored in Firestore)
+
+    var isVerified: Bool {
+        memberType == .student ? studentVerified : npiVerified
+    }
+
+    /// Profile items that still need attention, in the order to show them.
+    var profileChecklist: [(item: ProfileItem, isDone: Bool)] {
+        ProfileItem.items(for: memberType).map { ($0, $0.isDone(for: self)) }
+    }
+
     var profileCompletionPercent: Int {
-        let checks: [Bool] = [
-            !(npiNumber ?? "").isEmpty,
-            degreeType != nil,
-            specialty != nil,
-            !subspecialties.isEmpty,
-            medicalSchool != nil,
-            residencyProgram != nil,
-            currentInstitution != nil,
-            practiceType != nil,
-            !stateLicenses.isEmpty,
-            !languagesSpoken.isEmpty
-        ]
-        return checks.filter { $0 }.count * 10
+        let list = profileChecklist
+        guard !list.isEmpty else { return 100 }
+        return list.filter(\.isDone).count * 100 / list.count
     }
 
     var isChairperson: Bool {
@@ -104,6 +108,7 @@ struct User: Identifiable, Codable, Hashable {
         case nmaRegion, nmaRegionRole
         case isMentor, languagesSpoken, locationRegion
         case npiStatus
+        case memberType, onboardingCompleted, schoolEmail, studentVerified
     }
 
     // MARK: - Custom Decoding
@@ -122,6 +127,12 @@ struct User: Identifiable, Codable, Hashable {
         // Older documents have no npiStatus; derive it from npiVerified.
         npiStatus               = try c.decodeIfPresent(NPIStatus.self, forKey: .npiStatus)
                                   ?? (npiVerified ? .verified : .none)
+        // Existing members are clinicians; the old onboarding always saved an npiNumber.
+        memberType              = try c.decodeIfPresent(MemberType.self, forKey: .memberType) ?? .clinician
+        onboardingCompleted     = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted)
+                                  ?? c.contains(.npiNumber)
+        schoolEmail             = try c.decodeIfPresent(String.self, forKey: .schoolEmail)
+        studentVerified         = try c.decodeIfPresent(Bool.self, forKey: .studentVerified) ?? false
         degreeType              = try c.decodeIfPresent(DegreeType.self, forKey: .degreeType)
         specialty               = try c.decodeIfPresent(String.self, forKey: .specialty)
         subspecialties          = try c.decodeIfPresent([String].self, forKey: .subspecialties) ?? []
@@ -154,6 +165,9 @@ struct User: Identifiable, Codable, Hashable {
         self.credentials = credentials
         self.npiVerified = false
         self.npiStatus = .none
+        self.memberType = .clinician
+        self.onboardingCompleted = false
+        self.studentVerified = false
         self.subspecialties = []
         self.boardCertifications = []
         self.stateLicenses = []
@@ -192,4 +206,51 @@ enum NPIStatus: String, Codable {
     case verified
     case pendingReview
     case none
+}
+
+enum MemberType: String, Codable, CaseIterable {
+    case clinician
+    case student
+
+    var displayName: String {
+        switch self {
+        case .clinician: return "Clinician"
+        case .student:   return "Student"
+        }
+    }
+}
+
+enum ProfileItem: String, CaseIterable, Identifiable {
+    case verification, specialty, institution, region, stateLicenses, languages
+
+    var id: String { rawValue }
+
+    static func items(for type: MemberType) -> [ProfileItem] {
+        switch type {
+        case .clinician: return [.verification, .specialty, .institution, .region, .stateLicenses, .languages]
+        case .student:   return [.verification, .specialty, .institution, .region, .languages]
+        }
+    }
+
+    func title(for type: MemberType) -> String {
+        switch self {
+        case .verification:  return type == .student ? "Verify your school email" : "Verify your NPI"
+        case .specialty:     return type == .student ? "Add your intended specialty" : "Add your specialty"
+        case .institution:   return type == .student ? "Add your school" : "Add your institution"
+        case .region:        return "Choose your NMA region"
+        case .stateLicenses: return "Add your state licenses"
+        case .languages:     return "Add languages you speak"
+        }
+    }
+
+    func isDone(for user: User) -> Bool {
+        switch self {
+        case .verification:  return user.isVerified
+        case .specialty:     return !(user.specialty ?? "").isEmpty
+        case .institution:   return !(user.currentInstitution ?? "").isEmpty
+        case .region:        return user.nmaRegion != nil
+        case .stateLicenses: return !user.stateLicenses.isEmpty
+        case .languages:     return !user.languagesSpoken.isEmpty
+        }
+    }
 }

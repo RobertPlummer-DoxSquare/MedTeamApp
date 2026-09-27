@@ -73,6 +73,42 @@ class AuthService: ObservableObject {
         try await Auth.auth().sendPasswordReset(withEmail: email)
     }
 
+    // MARK: - Student verification
+
+    static func isSchoolEmail(_ email: String) -> Bool {
+        let parts = email.lowercased().trimmingCharacters(in: .whitespaces).split(separator: "@")
+        return parts.count == 2 && parts[1].hasSuffix(".edu")
+    }
+
+    /// Sends a confirmation link to the student's school (.edu) address.
+    /// If it isn't their login email, Firebase switches the login email to it once they click the link.
+    @MainActor
+    func sendSchoolVerification(to schoolEmail: String) async throws {
+        guard let user = Auth.auth().currentUser else { return }
+        let email = schoolEmail.lowercased().trimmingCharacters(in: .whitespaces)
+        if user.email?.lowercased() == email {
+            try await user.sendEmailVerification()
+        } else {
+            try await user.sendEmailVerification(beforeUpdatingEmail: email)
+        }
+        try await UserService.shared.updateFields(["schoolEmail": email])
+    }
+
+    /// Returns true once the login email is a verified .edu address, and records it on the profile.
+    @MainActor
+    func confirmSchoolVerification() async throws -> Bool {
+        guard let user = Auth.auth().currentUser else { return false }
+        try await user.reload()
+        guard let refreshed = Auth.auth().currentUser, refreshed.isEmailVerified,
+              let email = refreshed.email, Self.isSchoolEmail(email) else { return false }
+        try await UserService.shared.updateFields([
+            "studentVerified": true,
+            "schoolEmail": email,
+            "email": email
+        ])
+        return true
+    }
+
     /// Set after a successful deletion so the login screen can confirm it.
     @Published var didDeleteAccount = false
 
@@ -144,7 +180,7 @@ class AuthService: ObservableObject {
                 return "Too many attempts. Please wait a few minutes and try again."
             case .userDisabled:
                 return "This account has been disabled. Please contact support."
-            case .requiresRecentLogin:
+            case .requiresRecentLogin, .userTokenExpired:
                 return "For your security, please log out, log back in, and try again."
             default:
                 break

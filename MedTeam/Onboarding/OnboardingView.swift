@@ -35,42 +35,33 @@ let spokenLanguages = [
 struct OnboardingView: View {
     @StateObject private var vm = OnboardingViewModel()
     @State private var step = 1
-    private let totalSteps = 5
+    private let totalSteps = 3
 
     var body: some View {
         ZStack {
             Color.nmaBackground.ignoresSafeArea()
             VStack(spacing: 0) {
-                progressBar
-                    .padding(.horizontal, 24)
-                    .padding(.top, 20)
-                    .padding(.bottom, 4)
+                HStack(spacing: 16) {
+                    ProgressView(value: Double(step), total: Double(totalSteps))
+                        .tint(Color.nmaPrimary)
+                        .accessibilityLabel("Step \(step) of \(totalSteps)")
+                    Button("Log out") { AuthService.shared.signOut() }
+                        .font(.subheadline)
+                        .foregroundColor(Color.nmaSecondary)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
 
                 Group {
                     switch step {
-                    case 1: OnboardingStep1NPI(vm: vm, onNext: { step = 2 })
-                    case 2: OnboardingStep2Credentials(vm: vm, onNext: { step = 3 }, onBack: { step = 1 })
-                    case 3: OnboardingStep3Region(vm: vm, onNext: { step = 4 }, onBack: { step = 2 })
-                    case 4: OnboardingStep4Training(vm: vm, onNext: { step = 5 }, onBack: { step = 3 })
-                    case 5: OnboardingStep5Availability(vm: vm, onBack: { step = 4 })
-                    default: EmptyView()
+                    case 1: MemberTypeStep(vm: vm, onNext: { step = 2 })
+                    case 2: VerifyStep(vm: vm, onNext: { step = 3 }, onBack: { step = 1 })
+                    default: BasicsStep(vm: vm, onBack: { step = 2 })
                     }
                 }
                 .animation(.easeInOut(duration: 0.22), value: step)
             }
         }
-    }
-
-    private var progressBar: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(Color.nmaBorder).frame(height: 3)
-                Capsule().fill(Color.nmaPrimary)
-                    .frame(width: geo.size.width * CGFloat(step) / CGFloat(totalSteps), height: 3)
-                    .animation(.easeInOut, value: step)
-            }
-        }
-        .frame(height: 3)
     }
 }
 
@@ -83,7 +74,7 @@ private struct OnboardingHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Step \(step) of 5")
+            Text("Step \(step) of 3")
                 .font(.caption).foregroundColor(Color.nmaSecondary)
             Text(title)
                 .font(.title2).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
@@ -101,11 +92,13 @@ private struct OnboardingHeader: View {
 private struct PrimaryButton: View {
     let title: String
     let loading: Bool
+    let enabled: Bool
     let action: () -> Void
 
-    init(_ title: String, loading: Bool = false, action: @escaping () -> Void) {
+    init(_ title: String, loading: Bool = false, enabled: Bool = true, action: @escaping () -> Void) {
         self.title = title
         self.loading = loading
+        self.enabled = enabled
         self.action = action
     }
 
@@ -116,10 +109,10 @@ private struct PrimaryButton: View {
                 else { Text(title).font(.subheadline).fontWeight(.semibold).foregroundColor(.white) }
             }
             .frame(maxWidth: .infinity).frame(height: 50)
-            .background(Color.nmaPrimary).cornerRadius(12)
+            .background(Color.nmaPrimary.opacity(enabled ? 1 : 0.4)).cornerRadius(12)
         }
         .padding(.horizontal, 24)
-        .disabled(loading)
+        .disabled(loading || !enabled)
     }
 }
 
@@ -134,191 +127,275 @@ private struct SecondaryButton: View {
     }
 }
 
-private struct ChipToggle: View {
-    let label: String
-    let selected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.subheadline)
-                .foregroundColor(selected ? .white : Color.nmaSecondary)
-                .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(selected ? Color.nmaPrimary : Color.nmaSubtle)
-                .cornerRadius(20)
-        }
-    }
+private func fieldLabel(_ text: String) -> some View {
+    Text(text).font(.caption).foregroundColor(Color.nmaSecondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 24)
 }
 
-// MARK: - Step 1: NPI Lookup
+// MARK: - Screen 1: I am a…
 
-struct OnboardingStep1NPI: View {
+struct MemberTypeStep: View {
     @ObservedObject var vm: OnboardingViewModel
     let onNext: () -> Void
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                OnboardingHeader(
-                    step: 1,
-                    title: "Verify Your Identity",
-                    subtitle: "Your 10-digit NPI is public record. We use it to auto-fill your profile."
-                )
-
-                VStack(spacing: 16) {
-                    TextField("NPI Number", text: $vm.npiNumber)
-                        .keyboardType(.numberPad)
-                        .modifier(TextFieldModifier())
-
-                    switch vm.lookupState {
-                    case .success:
-                        if let r = vm.npiResult {
-                            HStack(spacing: 12) {
-                                Image(systemName: vm.npiNameMatches
-                                      ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                                    .foregroundColor(vm.npiNameMatches ? .green : .orange)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(r.fullName)
-                                        .font(.subheadline).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
-                                    if !r.specialty.isEmpty {
-                                        Text(r.specialty).font(.caption).foregroundColor(Color.nmaSecondary)
-                                    }
-                                    if let org = r.organizationName {
-                                        Text(org).font(.caption).foregroundColor(Color.nmaSecondary)
-                                    }
-                                }
-                                Spacer()
-                            }
-                            .padding(14)
-                            .background(Color.nmaSurface)
-                            .cornerRadius(12)
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
-                            .padding(.horizontal, 24)
-
-                            if !vm.npiNameMatches {
-                                NPINameMismatchNote(registryName: r.fullName)
-                            }
-                        }
-                    case .failure(let msg):
-                        Text(msg).font(.caption).foregroundColor(.red).padding(.horizontal, 24)
-                    default:
-                        EmptyView()
-                    }
-
-                    PrimaryButton("Look Up NPI", loading: vm.lookupState == .loading) {
-                        Task { await vm.lookupNPI() }
-                    }
-
-                    Divider().foregroundColor(Color.nmaBorder).padding(.horizontal, 24)
-
-                    SecondaryButton(title: "Skip for now — enter manually") { onNext() }
-                }
-                .padding(.bottom, 40)
-
-                if vm.lookupState == .success {
-                    PrimaryButton("Continue") { onNext() }.padding(.bottom, 32)
-                }
+            VStack(spacing: 12) {
+                OnboardingHeader(step: 1, title: "I am a…",
+                                 subtitle: "This helps members know how to connect with you.")
+                typeCard(.clinician, icon: "stethoscope",
+                         detail: "Physician or other licensed clinician. Verify with your NPI.")
+                typeCard(.student, icon: "graduationcap",
+                         detail: "Medical or health professions student. Verify with your school email.")
+                Spacer().frame(height: 20)
+                PrimaryButton("Continue", action: onNext)
+                    .padding(.bottom, 40)
             }
         }
     }
+
+    private func typeCard(_ type: MemberType, icon: String, detail: String) -> some View {
+        let selected = vm.memberType == type
+        return Button { vm.memberType = type } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundColor(selected ? .white : Color.nmaPrimary)
+                    .frame(width: 44, height: 44)
+                    .background(selected ? Color.nmaPrimary : Color.nmaSubtle)
+                    .cornerRadius(10)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(type.displayName).font(.headline).foregroundColor(Color.nmaPrimary)
+                    Text(detail).font(.caption).foregroundColor(Color.nmaSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer()
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(selected ? Color.nmaPrimary : Color.nmaBorder)
+            }
+            .padding(14)
+            .background(Color.nmaSurface)
+            .cornerRadius(12)
+            .overlay(RoundedRectangle(cornerRadius: 12)
+                .stroke(selected ? Color.nmaPrimary : Color.nmaBorder, lineWidth: selected ? 1 : 0.5))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 24)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
 }
 
-// MARK: - Step 2: Credentials & Specialty
+// MARK: - Screen 2: Verify
 
-struct OnboardingStep2Credentials: View {
+struct VerifyStep: View {
     @ObservedObject var vm: OnboardingViewModel
     let onNext: () -> Void
     let onBack: () -> Void
-    @State private var specialtySearch = ""
-    @State private var showSpecialtyPicker = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                OnboardingHeader(
-                    step: 2,
-                    title: "Credentials & Specialty",
-                    subtitle: "Help colleagues understand your background."
-                )
-
-                VStack(alignment: .leading, spacing: 20) {
-                    sectionLabel("Degree")
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(DegreeType.allCases, id: \.self) { deg in
-                                ChipToggle(label: deg.rawValue, selected: vm.degreeType == deg) {
-                                    vm.degreeType = deg
-                                }
-                            }
-                        }.padding(.horizontal, 24)
-                    }
-
-                    sectionLabel("Specialty")
-                    Button { showSpecialtyPicker = true } label: {
-                        HStack {
-                            Text(vm.specialty.isEmpty ? "Select specialty" : vm.specialty)
-                                .foregroundColor(vm.specialty.isEmpty ? Color.nmaSecondary : Color.nmaPrimary)
-                                .font(.subheadline)
-                            Spacer()
-                            Image(systemName: "chevron.down").foregroundColor(Color.nmaSecondary).font(.caption)
-                        }
-                        .padding(14)
-                        .background(Color.nmaSurface)
-                        .cornerRadius(12)
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
-                        .padding(.horizontal, 24)
-                    }
-
-                    if !vm.specialty.isEmpty {
-                        sectionLabel("Subspecialties (max 3)")
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(medSpecialties.filter { $0 != vm.specialty }, id: \.self) { sub in
-                                    let sel = vm.subspecialties.contains(sub)
-                                    ChipToggle(label: sub, selected: sel) {
-                                        if sel { vm.subspecialties.removeAll { $0 == sub } }
-                                        else if vm.subspecialties.count < 3 { vm.subspecialties.append(sub) }
-                                    }
-                                }
-                            }.padding(.horizontal, 24)
-                        }
-                    }
-
-                    sectionLabel("Board Certifications")
-                    HStack(spacing: 8) {
-                        TextField("e.g. ABIM – Internal Medicine", text: $vm.newCertification)
-                            .font(.subheadline).foregroundColor(.nmaPrimary)
-                            .padding(14)
-                            .background(Color.nmaSurface)
-                            .cornerRadius(12)
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
-                        Button {
-                            let cert = vm.newCertification.trimmingCharacters(in: .whitespaces)
-                            if !cert.isEmpty { vm.boardCertifications.append(cert); vm.newCertification = "" }
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(Color.nmaPrimary).font(.title3)
-                        }
-                    }.padding(.horizontal, 24)
-
-                    ForEach(vm.boardCertifications, id: \.self) { cert in
-                        HStack {
-                            Text(cert).font(.subheadline).foregroundColor(Color.nmaPrimary)
-                            Spacer()
-                            Button { vm.boardCertifications.removeAll { $0 == cert } } label: {
-                                Image(systemName: "xmark").font(.caption).foregroundColor(Color.nmaSecondary)
-                            }
-                        }.padding(.horizontal, 24).padding(.vertical, 4)
-                    }
+            VStack(spacing: 16) {
+                if vm.memberType == .clinician {
+                    OnboardingHeader(step: 2, title: "Verify your NPI",
+                                     subtitle: "Your 10-digit NPI is public record. A match earns the Verified clinician badge.")
+                    npiSection
+                } else {
+                    OnboardingHeader(step: 2, title: "Verify your school email",
+                                     subtitle: "We'll send a confirmation link to your .edu address. A confirmed email earns the Verified student badge.")
+                    schoolSection
                 }
 
-                Spacer().frame(height: 32)
-                VStack(spacing: 12) {
-                    PrimaryButton("Continue") { onNext() }
-                    SecondaryButton(title: "Back") { onBack() }
+                Spacer().frame(height: 12)
+                VStack(spacing: 14) {
+                    PrimaryButton("Continue", enabled: isVerifiedOrSent, action: onNext)
+                    SecondaryButton(title: "Verify later", action: onNext)
+                    SecondaryButton(title: "Back", action: onBack)
                 }
                 .padding(.bottom, 40)
+            }
+        }
+    }
+
+    private var isVerifiedOrSent: Bool {
+        vm.memberType == .clinician ? vm.lookupState == .success : vm.schoolEmailSent
+    }
+
+    @ViewBuilder
+    private var npiSection: some View {
+        TextField("NPI Number", text: $vm.npiNumber)
+            .keyboardType(.numberPad)
+            .modifier(TextFieldModifier())
+
+        switch vm.lookupState {
+        case .success:
+            if let r = vm.npiResult {
+                HStack(spacing: 12) {
+                    Image(systemName: vm.npiNameMatches ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                        .foregroundColor(vm.npiNameMatches ? .referralGreen : .pendingAmber)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(r.fullName).font(.subheadline).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
+                        if !r.specialty.isEmpty {
+                            Text(r.specialty).font(.caption).foregroundColor(Color.nmaSecondary)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(14)
+                .background(Color.nmaSurface)
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
+                .padding(.horizontal, 24)
+
+                if !vm.npiNameMatches {
+                    NPINameMismatchNote(registryName: r.fullName)
+                }
+            }
+        case .failure(let msg):
+            Text(msg).font(.caption).foregroundColor(.red).padding(.horizontal, 24)
+        default:
+            EmptyView()
+        }
+
+        Button {
+            Task { await vm.lookupNPI() }
+        } label: {
+            Group {
+                if vm.lookupState == .loading { ProgressView().tint(Color.nmaPrimary) }
+                else { Text("Look Up NPI").font(.subheadline).fontWeight(.semibold) }
+            }
+            .foregroundColor(Color.nmaPrimary)
+            .frame(maxWidth: .infinity).frame(height: 44)
+            .background(Color.nmaSubtle).cornerRadius(12)
+        }
+        .padding(.horizontal, 24)
+        .disabled(vm.npiNumber.count != 10 || vm.lookupState == .loading)
+    }
+
+    @ViewBuilder
+    private var schoolSection: some View {
+        TextField("you@school.edu", text: $vm.schoolEmail)
+            .keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .modifier(TextFieldModifier())
+
+        if case .failure(let msg) = vm.schoolEmailState {
+            Text(msg).font(.caption).foregroundColor(.red).padding(.horizontal, 24)
+        }
+
+        if vm.schoolEmailSent {
+            Label("Link sent to \(vm.schoolEmail). Open it on any device. Your Verified student badge appears once it's confirmed; you can keep going.",
+                  systemImage: "envelope.badge")
+                .font(.caption).foregroundColor(Color.nmaSecondary)
+                .padding(.horizontal, 24)
+        }
+
+        Button {
+            Task { await vm.sendSchoolVerification() }
+        } label: {
+            Group {
+                if vm.schoolEmailState == .loading { ProgressView().tint(Color.nmaPrimary) }
+                else { Text(vm.schoolEmailSent ? "Resend Link" : "Send Confirmation Link").font(.subheadline).fontWeight(.semibold) }
+            }
+            .foregroundColor(Color.nmaPrimary)
+            .frame(maxWidth: .infinity).frame(height: 44)
+            .background(Color.nmaSubtle).cornerRadius(12)
+        }
+        .padding(.horizontal, 24)
+        .disabled(vm.schoolEmail.isEmpty || vm.schoolEmailState == .loading)
+    }
+}
+
+// MARK: - Screen 3: Basics
+
+struct BasicsStep: View {
+    @ObservedObject var vm: OnboardingViewModel
+    let onBack: () -> Void
+    @State private var showSpecialtyPicker = false
+    @State private var specialtySearch = ""
+
+    private var isStudent: Bool { vm.memberType == .student }
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 14) {
+                OnboardingHeader(step: 3, title: "The basics",
+                                 subtitle: "You can change any of this later in Settings.")
+
+                fieldLabel(isStudent ? "Program and year" : "Credentials")
+                TextField(isStudent ? "e.g. MD candidate, class of 2028" : "e.g. MD, FACS", text: $vm.credentials)
+                    .modifier(TextFieldModifier())
+
+                fieldLabel(isStudent ? "Intended specialty" : "Specialty")
+                Button { showSpecialtyPicker = true } label: {
+                    HStack {
+                        Text(vm.specialty.isEmpty ? "Choose a specialty" : vm.specialty)
+                            .foregroundColor(vm.specialty.isEmpty ? Color.nmaSecondary : Color.nmaPrimary)
+                        Spacer()
+                        Image(systemName: "chevron.down").font(.caption).foregroundColor(Color.nmaSecondary)
+                    }
+                    .font(.subheadline)
+                    .padding(14)
+                    .background(Color.nmaSurface).cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
+                }
+                .padding(.horizontal, 24)
+
+                fieldLabel(isStudent ? "School" : "Institution or practice")
+                TextField(isStudent ? "e.g. Howard University College of Medicine" : "Hospital or practice name",
+                          text: $vm.institution)
+                    .modifier(TextFieldModifier())
+
+                fieldLabel("NMA region")
+                VStack(spacing: 8) {
+                    ForEach(regionsInOrder, id: \.self) { region in
+                        RegionOptionCard(region: region, isSelected: vm.nmaRegion == region) {
+                            vm.nmaRegion = region
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+
+                fieldLabel("Availability")
+                VStack(spacing: 0) {
+                    availabilityToggle("Open to mentoring", isOn: $vm.isMentor)
+                    Divider()
+                    availabilityToggle("Open to collaboration", isOn: $vm.isOpenToCollaboration)
+                    if !isStudent {
+                        Divider()
+                        availabilityToggle("Accepting referrals", isOn: $vm.isOpenToReferrals)
+                        if vm.isOpenToReferrals {
+                            Divider()
+                            TextField("Office phone (required for referrals)", text: $vm.officePhone)
+                                .keyboardType(.phonePad)
+                                .font(.subheadline)
+                                .foregroundColor(Color.nmaPrimary)
+                                .padding(.horizontal, 16).padding(.vertical, 12)
+                        }
+                    }
+                }
+                .background(Color.nmaSurface)
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
+                .padding(.horizontal, 24)
+
+                if let error = vm.saveError {
+                    Text(error).font(.caption).foregroundColor(.red).padding(.horizontal, 24)
+                }
+
+                Spacer().frame(height: 12)
+                VStack(spacing: 14) {
+                    PrimaryButton("Finish", loading: vm.isSaving, enabled: vm.canFinish) {
+                        Task { await vm.save() }
+                    }
+                    if !vm.canFinish {
+                        Text("Add a specialty and \(isStudent ? "school" : "institution") to finish.")
+                            .font(.caption).foregroundColor(Color.nmaSecondary)
+                    }
+                    SecondaryButton(title: "Back", action: onBack)
+                }
+                .padding(.bottom, 48)
             }
         }
         .sheet(isPresented: $showSpecialtyPicker) {
@@ -326,8 +403,17 @@ struct OnboardingStep2Credentials: View {
         }
     }
 
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text).font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
+    private var regionsInOrder: [NMARegion] {
+        guard let suggested = vm.suggestedRegion else { return NMARegion.allCases }
+        return [suggested] + NMARegion.allCases.filter { $0 != suggested }
+    }
+
+    private func availabilityToggle(_ title: String, isOn: Binding<Bool>) -> some View {
+        Toggle(title, isOn: isOn)
+            .font(.subheadline)
+            .foregroundColor(Color.nmaPrimary)
+            .tint(Color.nmaPrimary)
+            .padding(.horizontal, 16).padding(.vertical, 10)
     }
 }
 
@@ -360,62 +446,6 @@ private struct SpecialtyPickerSheet: View {
             .navigationTitle("Specialty")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
-        }
-    }
-}
-
-// MARK: - Step 3: NMA Region
-
-struct OnboardingStep3Region: View {
-    @ObservedObject var vm: OnboardingViewModel
-    let onNext: () -> Void
-    let onBack: () -> Void
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                OnboardingHeader(
-                    step: 3,
-                    title: "Your NMA Region",
-                    subtitle: "Your region connects you with NMA members in your area."
-                )
-
-                VStack(alignment: .leading, spacing: 12) {
-                    if let suggested = vm.suggestedRegion {
-                        Text("Suggested from your license state")
-                            .font(.caption).foregroundColor(Color.nmaSecondary)
-                            .padding(.horizontal, 24)
-
-                        RegionOptionCard(region: suggested, isSelected: vm.nmaRegion == suggested) {
-                            vm.nmaRegion = suggested
-                        }
-                        .padding(.horizontal, 24)
-
-                        Text("Other regions")
-                            .font(.caption).foregroundColor(Color.nmaSecondary)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 8)
-                    } else {
-                        Text("Select your NMA region")
-                            .font(.caption).foregroundColor(Color.nmaSecondary)
-                            .padding(.horizontal, 24)
-                    }
-
-                    ForEach(NMARegion.allCases.filter { $0 != vm.suggestedRegion }, id: \.self) { region in
-                        RegionOptionCard(region: region, isSelected: vm.nmaRegion == region) {
-                            vm.nmaRegion = region
-                        }
-                        .padding(.horizontal, 24)
-                    }
-                }
-
-                Spacer().frame(height: 32)
-                VStack(spacing: 12) {
-                    PrimaryButton("Continue") { onNext() }
-                    SecondaryButton(title: "Back") { onBack() }
-                }
-                .padding(.bottom, 40)
-            }
         }
     }
 }
@@ -461,197 +491,6 @@ private struct RegionOptionCard: View {
     }
 }
 
-// MARK: - Step 4: Training History
-
-struct OnboardingStep4Training: View {
-    @ObservedObject var vm: OnboardingViewModel
-    let onNext: () -> Void
-    let onBack: () -> Void
-
-    private let yearRange = Array((1950...OnboardingViewModel.thisYear).reversed())
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                OnboardingHeader(
-                    step: 4,
-                    title: "Training History",
-                    subtitle: "Helps with mentorship matching and finding program colleagues."
-                )
-
-                VStack(alignment: .leading, spacing: 20) {
-                    sectionLabel("Medical School")
-                    TextField("Institution name", text: $vm.medicalSchool).modifier(TextFieldModifier())
-                    yearPicker("Graduation Year", selection: $vm.medicalSchoolGradYear, years: yearRange)
-
-                    Divider().foregroundColor(Color.nmaBorder).padding(.horizontal, 24)
-
-                    sectionLabel("Residency")
-                    TextField("Program name", text: $vm.residencyProgram).modifier(TextFieldModifier())
-                    yearPicker("Completion Year", selection: $vm.residencyCompletionYear, years: yearRange)
-
-                    Divider().foregroundColor(Color.nmaBorder).padding(.horizontal, 24)
-
-                    HStack {
-                        sectionLabel("Fellowship")
-                        Spacer()
-                        Toggle("", isOn: $vm.hasFellowship).labelsHidden().tint(Color.nmaPrimary)
-                    }
-                    .padding(.horizontal, 24)
-
-                    if vm.hasFellowship {
-                        TextField("Program name", text: $vm.fellowshipProgram).modifier(TextFieldModifier())
-                        yearPicker("Completion Year", selection: $vm.fellowshipCompletionYear, years: yearRange)
-                    }
-                }
-
-                Spacer().frame(height: 32)
-                VStack(spacing: 12) {
-                    PrimaryButton("Continue") { onNext() }
-                    SecondaryButton(title: "Back") { onBack() }
-                }
-                .padding(.bottom, 40)
-            }
-        }
-    }
-
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text).font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
-    }
-
-    @ViewBuilder
-    private func yearPicker(_ label: String, selection: Binding<Int>, years: [Int]) -> some View {
-        HStack {
-            Text(label).font(.subheadline).foregroundColor(Color.nmaSecondary)
-            Spacer()
-            Picker("", selection: selection) {
-                ForEach(years, id: \.self) { Text(String($0)).tag($0) }
-            }
-            .pickerStyle(.menu).tint(Color.nmaPrimary)
-        }
-        .padding(.horizontal, 24)
-    }
-}
-
-// MARK: - Step 5: Availability
-
-struct OnboardingStep5Availability: View {
-    @ObservedObject var vm: OnboardingViewModel
-    let onBack: () -> Void
-    @State private var error: String?
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                OnboardingHeader(
-                    step: 5,
-                    title: "Availability",
-                    subtitle: "Let colleagues know how they can connect with you."
-                )
-
-                VStack(spacing: 0) {
-                    availabilityRow(
-                        icon: "phone.circle",
-                        title: "Accept Referral Notifications",
-                        subtitle: "Colleagues can send you a \"call my office\" alert",
-                        isOn: $vm.isOpenToReferrals
-                    )
-                    Divider().foregroundColor(Color.nmaBorder)
-
-                    availabilityRow(
-                        icon: "flask",
-                        title: "Open to Research Collaboration",
-                        subtitle: "Research or clinical collaboration",
-                        isOn: $vm.isOpenToCollaboration
-                    )
-                    Divider().foregroundColor(Color.nmaBorder)
-
-                    availabilityRow(
-                        icon: "graduationcap",
-                        title: "Available as Mentor",
-                        subtitle: "Residents and students can reach out",
-                        isOn: $vm.isMentor
-                    )
-                }
-                .background(Color.nmaSurface)
-                .cornerRadius(14)
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.nmaBorder, lineWidth: 0.5))
-                .padding(.horizontal, 24)
-
-                if let error {
-                    Text(error).font(.caption).foregroundColor(.red)
-                        .padding(.horizontal, 24).padding(.top, 12)
-                }
-
-                Spacer().frame(height: 40)
-                VStack(spacing: 12) {
-                    PrimaryButton("Complete Profile", loading: vm.isSaving) {
-                        Task {
-                            do { try await vm.save() }
-                            catch { self.error = error.localizedDescription }
-                        }
-                    }
-                    SecondaryButton(title: "Back") { onBack() }
-                }
-                .padding(.bottom, 48)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func availabilityRow(icon: String, title: String, subtitle: String, isOn: Binding<Bool>) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.title3).foregroundColor(Color.nmaSecondary).frame(width: 24)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline).fontWeight(.medium).foregroundColor(Color.nmaPrimary)
-                Text(subtitle).font(.caption).foregroundColor(Color.nmaSecondary)
-            }
-            Spacer()
-            Toggle("", isOn: isOn).labelsHidden().tint(Color.nmaPrimary)
-        }
-        .padding(.horizontal, 16).padding(.vertical, 14)
-    }
-}
-
-// MARK: - Flow layout (languages, unchanged)
-
-private struct FlowChips: View {
-    let items: [String]
-    @Binding var selected: [String]
-
-    var body: some View {
-        GeometryReader { geo in self.generateContent(in: geo) }
-            .frame(height: 80)
-    }
-
-    private func generateContent(in geo: GeometryProxy) -> some View {
-        var width = CGFloat.zero
-        var height = CGFloat.zero
-        return ZStack(alignment: .topLeading) {
-            ForEach(items, id: \.self) { item in
-                ChipToggle(label: item, selected: selected.contains(item)) {
-                    if selected.contains(item) { selected.removeAll { $0 == item } }
-                    else { selected.append(item) }
-                }
-                .alignmentGuide(.leading) { d in
-                    if abs(width - d.width) > geo.size.width { width = 0; height -= d.height + 8 }
-                    let result = width
-                    if item == items.last { width = 0 } else { width -= d.width + 8 }
-                    return result
-                }
-                .alignmentGuide(.top) { _ in
-                    let result = height
-                    if item == items.last { height = 0 }
-                    return result
-                }
-            }
-        }
-    }
-}
-
 struct OnboardingView_Previews: PreviewProvider {
-    static var previews: some View {
-        OnboardingView()
-    }
+    static var previews: some View { OnboardingView() }
 }

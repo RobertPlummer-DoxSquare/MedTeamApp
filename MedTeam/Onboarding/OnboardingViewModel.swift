@@ -11,127 +11,124 @@ enum LookupState: Equatable {
     case idle, loading, success, failure(String)
 }
 
+@MainActor
 class OnboardingViewModel: ObservableObject {
-    // MARK: - Step 1: NPI
+    // MARK: - Screen 1: Member type
+    @Published var memberType: MemberType = .clinician
+
+    // MARK: - Screen 2: Verify (clinician NPI)
     @Published var npiNumber = ""
     @Published var lookupState: LookupState = .idle
     @Published var npiResult: NPIResult?
     @Published var npiNameMatches = false
+
+    // MARK: - Screen 2: Verify (student school email)
+    @Published var schoolEmail = ""
+    @Published var schoolEmailState: LookupState = .idle
+    @Published var schoolEmailSent = false
+
+    // MARK: - Screen 3: Basics
+    @Published var credentials = ""
+    @Published var specialty = ""
+    @Published var institution = ""
+    @Published var nmaRegion: NMARegion?
+    @Published var suggestedRegion: NMARegion?
+    @Published var isMentor = false
+    @Published var isOpenToCollaboration = false
+    @Published var isOpenToReferrals = false
+    @Published var officePhone = ""
+    @Published var stateLicenses: [String] = []
+
+    @Published var isSaving = false
+    @Published var saveError: String?
 
     var npiStatus: NPIStatus {
         guard npiResult != nil else { return .none }
         return npiNameMatches ? .verified : .pendingReview
     }
 
-    // MARK: - Step 2: Credentials
-    @Published var degreeType: DegreeType = .md
-    @Published var specialty = ""
-    @Published var subspecialties: [String] = []
-    @Published var boardCertifications: [String] = []
-    @Published var newCertification = ""
-
-    // MARK: - Step 3: NMA Region
-    @Published var nmaRegion: NMARegion?
-    @Published var suggestedRegion: NMARegion?
-
-    // MARK: - Step 4: Training
-    @Published var medicalSchool = ""
-    @Published var medicalSchoolGradYear = OnboardingViewModel.thisYear
-    @Published var residencyProgram = ""
-    @Published var residencyCompletionYear = OnboardingViewModel.thisYear
-    @Published var hasFellowship = false
-    @Published var fellowshipProgram = ""
-    @Published var fellowshipCompletionYear = OnboardingViewModel.thisYear
-
-    // MARK: - Step 5: Availability
-    @Published var isOpenToReferrals = false
-    @Published var isOpenToCollaboration = false
-    @Published var isMentor = false
-
-    // MARK: - Practice (populated from NPI, saved silently)
-    @Published var currentInstitution = ""
-    @Published var practiceType: PracticeType = .academic
-    @Published var stateLicenses: [String] = []
-    @Published var locationRegion = ""
-    @Published var languagesSpoken: [String] = ["English"]
-
-    @Published var isSaving = false
-
-    static var thisYear: Int { Calendar.current.component(.year, from: Date()) }
+    var canFinish: Bool {
+        !specialty.isEmpty && !institution.trimmingCharacters(in: .whitespaces).isEmpty
+            && (!isOpenToReferrals || !officePhone.trimmingCharacters(in: .whitespaces).isEmpty)
+    }
 
     // MARK: - NPI Lookup
+
     func lookupNPI() async {
-        await MainActor.run { lookupState = .loading }
+        lookupState = .loading
         do {
             let result = try await NPIService.lookup(npi: npiNumber)
             let accountName = UserService.shared.currentUser?.fullname ?? ""
-            await MainActor.run {
-                npiResult = result
-                npiNameMatches = NPIService.nameMatches(result, accountName: accountName)
-                lookupState = .success
-                if !result.specialty.isEmpty, specialty.isEmpty {
-                    specialty = result.specialty
-                }
-                if let org = result.organizationName, currentInstitution.isEmpty {
-                    currentInstitution = org
-                }
-                if let state = result.state {
-                    if !stateLicenses.contains(state) { stateLicenses.append(state) }
-                    if let region = NMARegion.fromState(state) {
-                        suggestedRegion = region
-                        if nmaRegion == nil { nmaRegion = region }
-                    }
+            npiResult = result
+            npiNameMatches = NPIService.nameMatches(result, accountName: accountName)
+            lookupState = .success
+            if !result.credential.isEmpty, credentials.isEmpty { credentials = result.credential }
+            if !result.specialty.isEmpty, specialty.isEmpty { specialty = result.specialty }
+            if let org = result.organizationName, institution.isEmpty { institution = org }
+            if let state = result.state {
+                if !stateLicenses.contains(state) { stateLicenses.append(state) }
+                if let region = NMARegion.fromState(state) {
+                    suggestedRegion = region
+                    if nmaRegion == nil { nmaRegion = region }
                 }
             }
         } catch {
-            await MainActor.run {
-                npiResult = nil
-                npiNameMatches = false
-                lookupState = .failure(error.localizedDescription)
-            }
+            npiResult = nil
+            npiNameMatches = false
+            lookupState = .failure(error.localizedDescription)
         }
     }
 
-    // MARK: - Save to Firestore
-    @MainActor
-    func save() async throws {
+    // MARK: - School email
+
+    func sendSchoolVerification() async {
+        guard AuthService.isSchoolEmail(schoolEmail) else {
+            schoolEmailState = .failure("Please use your school's .edu email address.")
+            return
+        }
+        schoolEmailState = .loading
+        do {
+            try await AuthService.shared.sendSchoolVerification(to: schoolEmail)
+            schoolEmailSent = true
+            schoolEmailState = .idle
+        } catch {
+            schoolEmailState = .failure(AuthService.friendlyMessage(for: error))
+        }
+    }
+
+    // MARK: - Save
+
+    func save() async {
         isSaving = true
         defer { isSaving = false }
-
-        guard let uid = Auth.auth().currentUser?.uid else { return }
+        saveError = nil
 
         var data: [String: Any] = [
-            // Only keep an NPI the registry recognized.
-            "npiNumber":              npiResult != nil ? npiNumber : "",
-            "npiVerified":            npiStatus == .verified,
-            "npiStatus":              npiStatus.rawValue,
-            "degreeType":             degreeType.rawValue,
-            "specialty":              specialty,
-            "subspecialties":         subspecialties,
-            "boardCertifications":    boardCertifications,
-            "medicalSchool":          medicalSchool,
-            "medicalSchoolGradYear":  medicalSchoolGradYear,
-            "residencyProgram":       residencyProgram,
-            "residencyCompletionYear": residencyCompletionYear,
-            "currentInstitution":     currentInstitution,
-            "practiceType":           practiceType.rawValue,
-            "stateLicenses":          stateLicenses,
-            "locationRegion":         locationRegion,
-            "languagesSpoken":        languagesSpoken,
-            "isAcceptingReferrals":   isOpenToReferrals,
-            "isOpenToCollaboration":  isOpenToCollaboration,
-            "isMentor":               isMentor
+            "memberType":            memberType.rawValue,
+            "onboardingCompleted":   true,
+            "credentials":           credentials.trimmingCharacters(in: .whitespaces),
+            "specialty":             specialty,
+            "currentInstitution":    institution.trimmingCharacters(in: .whitespaces),
+            "isMentor":              isMentor,
+            "isOpenToCollaboration": isOpenToCollaboration,
+            "isAcceptingReferrals":  memberType == .clinician && isOpenToReferrals,
+            "languagesSpoken":       ["English"]
         ]
+        if let region = nmaRegion { data["nmaRegion"] = region.rawValue }
+        if !officePhone.isEmpty { data["officePhone"] = officePhone }
+        if !stateLicenses.isEmpty { data["stateLicenses"] = stateLicenses }
 
-        if let region = nmaRegion {
-            data["nmaRegion"] = region.rawValue
-        }
-        if hasFellowship {
-            data["fellowshipProgram"] = fellowshipProgram
-            data["fellowshipCompletionYear"] = fellowshipCompletionYear
+        if memberType == .clinician {
+            // Only keep an NPI the registry recognized.
+            data["npiNumber"]   = npiResult != nil ? npiNumber : ""
+            data["npiVerified"] = npiStatus == .verified
+            data["npiStatus"]   = npiStatus.rawValue
         }
 
-        try await Firestore.firestore().collection("users").document(uid).updateData(data)
-        try await UserService.shared.fetchCurrentUser()
+        do {
+            try await UserService.shared.updateFields(data)
+        } catch {
+            saveError = AuthService.friendlyMessage(for: error)
+        }
     }
 }

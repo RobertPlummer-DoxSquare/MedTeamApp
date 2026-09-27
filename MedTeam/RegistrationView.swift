@@ -10,7 +10,6 @@ let customBackgroundColor = Color.black
 
 struct RegistrationView: View {
     @StateObject var viewModel = RegistrationViewModel()
-    @State private var credentials = ""
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -48,9 +47,6 @@ struct RegistrationView: View {
                         TextField("Username", text: $viewModel.username)
                             .autocapitalization(.none)
                             .modifier(TextFieldModifier())
-
-                        TextField("Credentials (MD, DO, MPH, FACS…)", text: $credentials)
-                            .modifier(TextFieldModifier())
                     }
 
                     if let error = viewModel.errorMessage {
@@ -65,7 +61,6 @@ struct RegistrationView: View {
                     Spacer().frame(height: 32)
 
                     Button {
-                        viewModel.credentials = credentials
                         Task { await viewModel.createUser() }
                     } label: {
                         Group {

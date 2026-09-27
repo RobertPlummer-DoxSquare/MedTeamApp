@@ -24,17 +24,16 @@ struct ProfileContent: View {
                 .padding(.top, 20)
 
             VStack(spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(user.fullname)
-                        .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
-                    if user.npiVerified {
-                        Image(systemName: "checkmark.seal.fill")
-                            .foregroundColor(.regionBlue).font(.subheadline)
-                            .accessibilityLabel("Verified")
-                    }
+                Text(user.fullname)
+                    .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
+                if !user.credentials.isEmpty {
+                    Text(user.credentials)
+                        .font(.subheadline).foregroundColor(Color.nmaSecondary)
                 }
-                Text(user.credentials)
-                    .font(.subheadline).foregroundColor(Color.nmaSecondary)
+                if user.isVerified {
+                    VerificationBadge(memberType: user.memberType)
+                        .padding(.top, 2)
+                }
             }
 
             HStack(spacing: 8) {
@@ -201,6 +200,33 @@ struct ProfileContent: View {
             .foregroundColor(fg)
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(bg).cornerRadius(6)
+    }
+}
+
+// MARK: - Verification Badge
+
+/// Blue "Verified clinician" or green "Verified student".
+struct VerificationBadge: View {
+    let memberType: MemberType
+    var compact = false
+
+    private var label: String { memberType == .student ? "Verified student" : "Verified clinician" }
+    private var fg: Color { memberType == .student ? .referralGreen : .regionBlue }
+    private var bg: Color { memberType == .student ? .referralGreenBackground : .regionBlueBackground }
+
+    var body: some View {
+        if compact {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.caption)
+                .foregroundColor(fg)
+                .accessibilityLabel(label)
+        } else {
+            Label(label, systemImage: "checkmark.seal.fill")
+                .font(.caption).fontWeight(.medium)
+                .foregroundColor(fg)
+                .padding(.horizontal, 8).padding(.vertical, 4)
+                .background(bg).cornerRadius(6)
+        }
     }
 }
 

@@ -104,21 +104,21 @@ struct Settings: View {
                 .tint(Color.nmaPrimary)
 
                 Section("Verification") {
+                    let memberType = viewModel.user?.memberType ?? .clinician
                     NavigationLink {
-                        NPIVerificationView()
+                        VerificationView(memberType: memberType)
                     } label: {
                         HStack {
-                            Text("NPI Verification")
+                            Text(memberType == .student ? "School Email" : "NPI Verification")
                             Spacer()
-                            switch viewModel.user?.npiStatus {
-                            case .verified:
+                            if viewModel.user?.isVerified == true {
                                 Label("Verified", systemImage: "checkmark.seal.fill")
                                     .font(.caption).foregroundColor(.referralGreen)
-                            case .pendingReview:
+                            } else if memberType == .clinician && viewModel.user?.npiStatus == .pendingReview {
                                 Label("Pending review", systemImage: "clock")
                                     .font(.caption).foregroundColor(.pendingAmber)
-                            default:
-                                EmptyView()
+                            } else {
+                                Text("Not verified").font(.caption).foregroundColor(.nmaSecondary)
                             }
                         }
                     }
@@ -238,6 +238,149 @@ struct NPIVerificationView: View {
     }
 }
 
+// MARK: - Verification (by member type)
+
+struct VerificationView: View {
+    let memberType: MemberType
+
+    var body: some View {
+        if memberType == .student {
+            StudentVerificationView()
+        } else {
+            NPIVerificationView()
+        }
+    }
+}
+
+// MARK: - Student Verification View
+
+struct StudentVerificationView: View {
+    @ObservedObject private var userService = UserService.shared
+    @State private var schoolEmail = UserService.shared.currentUser?.schoolEmail ?? ""
+    @State private var state: LookupState = .idle
+    @State private var linkSent = false
+    @State private var message: String?
+
+    private var isVerified: Bool { userService.currentUser?.studentVerified == true }
+
+    var body: some View {
+        ZStack {
+            Color.nmaBackground.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if isVerified {
+                        Label("Your school email \(userService.currentUser?.schoolEmail ?? "") is verified.",
+                              systemImage: "checkmark.seal.fill")
+                            .font(.subheadline).foregroundColor(.referralGreen)
+                            .padding(.horizontal, 24).padding(.top, 16)
+                    } else {
+                        Text("Enter your school's .edu email. We'll send a confirmation link; if it's different from your login email, your login email will change to it once you confirm.")
+                            .font(.subheadline).foregroundColor(Color.nmaSecondary)
+                            .padding(.horizontal, 24).padding(.top, 16)
+
+                        TextField("you@school.edu", text: $schoolEmail)
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .modifier(TextFieldModifier())
+
+                        if let message {
+                            Text(message).font(.caption).foregroundColor(Color.nmaSecondary)
+                                .padding(.horizontal, 24)
+                        }
+
+                        actionButton(linkSent ? "Resend Link" : "Send Confirmation Link", style: .secondary) {
+                            guard AuthService.isSchoolEmail(schoolEmail) else {
+                                message = "Please use your school's .edu email address."
+                                return
+                            }
+                            do {
+                                try await AuthService.shared.sendSchoolVerification(to: schoolEmail)
+                                linkSent = true
+                                message = "Link sent. Open it, then come back and tap \"I've confirmed my email\"."
+                            } catch {
+                                message = AuthService.friendlyMessage(for: error)
+                            }
+                        }
+
+                        if linkSent || userService.currentUser?.schoolEmail != nil {
+                            actionButton("I've confirmed my email", style: .primary) {
+                                do {
+                                    let verified = try await AuthService.shared.confirmSchoolVerification()
+                                    message = verified ? nil : "We couldn't confirm it yet. Open the link in the email, then try again."
+                                } catch {
+                                    message = AuthService.friendlyMessage(for: error)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.bottom, 40)
+            }
+        }
+        .navigationTitle("School Email")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private enum ButtonStyleKind { case primary, secondary }
+
+    private func actionButton(_ title: String, style: ButtonStyleKind,
+                              action: @escaping () async -> Void) -> some View {
+        Button {
+            Task {
+                state = .loading
+                await action()
+                state = .idle
+            }
+        } label: {
+            Group {
+                if state == .loading { ProgressView().tint(style == .primary ? .white : .nmaPrimary) }
+                else { Text(title).font(.subheadline).fontWeight(.semibold) }
+            }
+            .foregroundColor(style == .primary ? .white : .nmaPrimary)
+            .frame(maxWidth: .infinity).frame(height: 48)
+            .background(style == .primary ? Color.nmaPrimary : Color.nmaSubtle)
+            .cornerRadius(12)
+        }
+        .padding(.horizontal, 24)
+        .disabled(state == .loading || schoolEmail.isEmpty)
+    }
+}
+
+// MARK: - Edit Region View
+
+struct EditRegionView: View {
+    @State private var region = UserService.shared.currentUser?.nmaRegion
+    @StateObject private var saver = AutoSaver()
+
+    var body: some View {
+        List {
+            ForEach(NMARegion.allCases, id: \.self) { option in
+                Button { region = option } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(option.displayName).foregroundColor(Color.nmaPrimary)
+                            Text(option.statesDisplay).font(.caption).foregroundColor(Color.nmaSecondary)
+                                .lineLimit(2)
+                        }
+                        Spacer()
+                        if region == option {
+                            Image(systemName: "checkmark").foregroundColor(Color.nmaPrimary)
+                        }
+                    }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.nmaBackground)
+        .navigationTitle("NMA Region")
+        .navigationBarTitleDisplayMode(.inline)
+        .saveStatus(saver)
+        .onChange(of: region) { saver.save(["nmaRegion": $0?.rawValue ?? FieldValue.delete()]) }
+    }
+}
+
 // MARK: - NPI Name Mismatch Note
 
 struct NPINameMismatchNote: View {
@@ -354,6 +497,7 @@ struct EditPracticeView: View {
     @State private var institution = UserService.shared.currentUser?.currentInstitution ?? ""
     @State private var practiceType = UserService.shared.currentUser?.practiceType ?? PracticeType.academic
     @State private var region = UserService.shared.currentUser?.locationRegion ?? ""
+    private let isStudent = UserService.shared.currentUser?.memberType == .student
     @StateObject private var saver = AutoSaver()
 
     var body: some View {
@@ -361,10 +505,12 @@ struct EditPracticeView: View {
             Color.nmaBackground.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Institution").font(.caption).foregroundColor(Color.nmaSecondary)
+                    Text(isStudent ? "School" : "Institution").font(.caption).foregroundColor(Color.nmaSecondary)
                         .padding(.horizontal, 24).padding(.top, 16)
-                    TextField("Hospital or practice name", text: $institution).modifier(TextFieldModifier())
+                    TextField(isStudent ? "School name" : "Hospital or practice name", text: $institution)
+                        .modifier(TextFieldModifier())
 
+                    if !isStudent {
                     Text("Practice Type").font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
                     VStack(spacing: 0) {
                         ForEach(PracticeType.allCases, id: \.self) { pt in
@@ -386,6 +532,7 @@ struct EditPracticeView: View {
                     .background(Color.nmaSurface).cornerRadius(12)
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
                     .padding(.horizontal, 24)
+                    }
 
                     Text("Metro Area / Region").font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
                     TextField("e.g. New York, NY", text: $region).modifier(TextFieldModifier())
@@ -393,7 +540,7 @@ struct EditPracticeView: View {
                 .padding(.bottom, 40)
             }
         }
-        .navigationTitle("Practice & Institution")
+        .navigationTitle(isStudent ? "School" : "Practice & Institution")
         .navigationBarTitleDisplayMode(.inline)
         .saveStatus(saver)
         .onChange(of: institution) { saver.save(["currentInstitution": $0], after: .milliseconds(800)) }

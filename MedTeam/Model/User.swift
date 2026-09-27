@@ -2,8 +2,6 @@
 //  User.swift
 //  MedTeam
 //
-//  Created by Robert Plummer on 6/25/24.
-//
 
 import Foundation
 
@@ -42,8 +40,13 @@ struct User: Identifiable, Codable, Hashable {
     var currentInstitution: String?
     var practiceType: PracticeType?
     var stateLicenses: [String]
-    var isAcceptingReferrals: Bool
+    var isOpenToReferrals: Bool
     var isOpenToCollaboration: Bool
+    var officePhone: String?
+
+    // MARK: - NMA Region
+    var nmaRegion: NMARegion?
+    var nmaRegionRole: NMARegionRole?
 
     // MARK: - Networking
     var isMentor: Bool
@@ -67,6 +70,10 @@ struct User: Identifiable, Codable, Hashable {
         return checks.filter { $0 }.count * 10
     }
 
+    var isChairperson: Bool {
+        nmaRegionRole == .chairperson
+    }
+
     // MARK: - CodingKeys
     enum CodingKeys: String, CodingKey {
         case id, email, fullname, username, credentials, profileImageUrl
@@ -77,44 +84,50 @@ struct User: Identifiable, Codable, Hashable {
         case residencyProgram, residencyCompletionYear
         case fellowshipProgram, fellowshipCompletionYear
         case currentInstitution, practiceType, stateLicenses
-        case isAcceptingReferrals, isOpenToCollaboration
+        case isOpenToReferrals = "isAcceptingReferrals"
+        case isOpenToCollaboration
+        case officePhone
+        case nmaRegion, nmaRegionRole
         case isMentor, languagesSpoken, locationRegion
     }
 
-    // MARK: - Custom Decoding (graceful defaults for missing fields)
+    // MARK: - Custom Decoding
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id                     = try c.decode(String.self, forKey: .id)
-        email                  = try c.decode(String.self, forKey: .email)
-        fullname               = try c.decode(String.self, forKey: .fullname)
-        username               = try c.decode(String.self, forKey: .username)
-        credentials            = try c.decode(String.self, forKey: .credentials)
-        profileImageUrl        = try c.decodeIfPresent(String.self, forKey: .profileImageUrl)
-        bio                    = try c.decodeIfPresent(String.self, forKey: .bio)
-        selectedSurgeryService = try c.decodeIfPresent([String].self, forKey: .selectedSurgeryService)
-        npiNumber              = try c.decodeIfPresent(String.self, forKey: .npiNumber)
-        npiVerified            = try c.decodeIfPresent(Bool.self, forKey: .npiVerified) ?? false
-        degreeType             = try c.decodeIfPresent(DegreeType.self, forKey: .degreeType)
-        specialty              = try c.decodeIfPresent(String.self, forKey: .specialty)
-        subspecialties         = try c.decodeIfPresent([String].self, forKey: .subspecialties) ?? []
-        boardCertifications    = try c.decodeIfPresent([String].self, forKey: .boardCertifications) ?? []
-        medicalSchool          = try c.decodeIfPresent(String.self, forKey: .medicalSchool)
-        medicalSchoolGradYear  = try c.decodeIfPresent(Int.self, forKey: .medicalSchoolGradYear)
-        residencyProgram       = try c.decodeIfPresent(String.self, forKey: .residencyProgram)
+        id                      = try c.decode(String.self, forKey: .id)
+        email                   = try c.decode(String.self, forKey: .email)
+        fullname                = try c.decode(String.self, forKey: .fullname)
+        username                = try c.decode(String.self, forKey: .username)
+        credentials             = try c.decode(String.self, forKey: .credentials)
+        profileImageUrl         = try c.decodeIfPresent(String.self, forKey: .profileImageUrl)
+        bio                     = try c.decodeIfPresent(String.self, forKey: .bio)
+        selectedSurgeryService  = try c.decodeIfPresent([String].self, forKey: .selectedSurgeryService)
+        npiNumber               = try c.decodeIfPresent(String.self, forKey: .npiNumber)
+        npiVerified             = try c.decodeIfPresent(Bool.self, forKey: .npiVerified) ?? false
+        degreeType              = try c.decodeIfPresent(DegreeType.self, forKey: .degreeType)
+        specialty               = try c.decodeIfPresent(String.self, forKey: .specialty)
+        subspecialties          = try c.decodeIfPresent([String].self, forKey: .subspecialties) ?? []
+        boardCertifications     = try c.decodeIfPresent([String].self, forKey: .boardCertifications) ?? []
+        medicalSchool           = try c.decodeIfPresent(String.self, forKey: .medicalSchool)
+        medicalSchoolGradYear   = try c.decodeIfPresent(Int.self, forKey: .medicalSchoolGradYear)
+        residencyProgram        = try c.decodeIfPresent(String.self, forKey: .residencyProgram)
         residencyCompletionYear = try c.decodeIfPresent(Int.self, forKey: .residencyCompletionYear)
-        fellowshipProgram      = try c.decodeIfPresent(String.self, forKey: .fellowshipProgram)
+        fellowshipProgram       = try c.decodeIfPresent(String.self, forKey: .fellowshipProgram)
         fellowshipCompletionYear = try c.decodeIfPresent(Int.self, forKey: .fellowshipCompletionYear)
-        currentInstitution     = try c.decodeIfPresent(String.self, forKey: .currentInstitution)
-        practiceType           = try c.decodeIfPresent(PracticeType.self, forKey: .practiceType)
-        stateLicenses          = try c.decodeIfPresent([String].self, forKey: .stateLicenses) ?? []
-        isAcceptingReferrals   = try c.decodeIfPresent(Bool.self, forKey: .isAcceptingReferrals) ?? false
-        isOpenToCollaboration  = try c.decodeIfPresent(Bool.self, forKey: .isOpenToCollaboration) ?? false
-        isMentor               = try c.decodeIfPresent(Bool.self, forKey: .isMentor) ?? false
-        languagesSpoken        = try c.decodeIfPresent([String].self, forKey: .languagesSpoken) ?? []
-        locationRegion         = try c.decodeIfPresent(String.self, forKey: .locationRegion)
+        currentInstitution      = try c.decodeIfPresent(String.self, forKey: .currentInstitution)
+        practiceType            = try c.decodeIfPresent(PracticeType.self, forKey: .practiceType)
+        stateLicenses           = try c.decodeIfPresent([String].self, forKey: .stateLicenses) ?? []
+        isOpenToReferrals       = try c.decodeIfPresent(Bool.self, forKey: .isOpenToReferrals) ?? false
+        isOpenToCollaboration   = try c.decodeIfPresent(Bool.self, forKey: .isOpenToCollaboration) ?? false
+        officePhone             = try c.decodeIfPresent(String.self, forKey: .officePhone)
+        nmaRegion               = try c.decodeIfPresent(NMARegion.self, forKey: .nmaRegion)
+        nmaRegionRole           = try c.decodeIfPresent(NMARegionRole.self, forKey: .nmaRegionRole)
+        isMentor                = try c.decodeIfPresent(Bool.self, forKey: .isMentor) ?? false
+        languagesSpoken         = try c.decodeIfPresent([String].self, forKey: .languagesSpoken) ?? []
+        locationRegion          = try c.decodeIfPresent(String.self, forKey: .locationRegion)
     }
 
-    // MARK: - Base init (used by AuthService on account creation)
+    // MARK: - Base init
     init(id: String, email: String, fullname: String, username: String, credentials: String) {
         self.id = id
         self.email = email
@@ -125,7 +138,7 @@ struct User: Identifiable, Codable, Hashable {
         self.subspecialties = []
         self.boardCertifications = []
         self.stateLicenses = []
-        self.isAcceptingReferrals = false
+        self.isOpenToReferrals = false
         self.isOpenToCollaboration = false
         self.isMentor = false
         self.languagesSpoken = []

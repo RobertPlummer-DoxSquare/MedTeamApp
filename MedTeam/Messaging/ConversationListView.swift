@@ -6,7 +6,7 @@ struct ConversationListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.nmaBackground.ignoresSafeArea()
                 Group {
                     if viewModel.conversations.isEmpty {
                         emptyState
@@ -19,7 +19,7 @@ struct ConversationListView: View {
                                     }
                                     .buttonStyle(.plain)
                                     Divider()
-                                        .background(Color(white: 0.1))
+                                        .background(Color.nmaBorder)
                                         .padding(.leading, 72)
                                 }
                             }
@@ -29,7 +29,6 @@ struct ConversationListView: View {
             }
             .navigationTitle("Messages")
             .navigationBarTitleDisplayMode(.inline)
-            .colorScheme(.dark)
         }
     }
 
@@ -37,13 +36,13 @@ struct ConversationListView: View {
         VStack(spacing: 12) {
             Image(systemName: "message")
                 .font(.system(size: 40))
-                .foregroundColor(Color(white: 0.25))
+                .foregroundColor(Color.nmaSecondary)
             Text("No messages yet")
                 .font(.subheadline).fontWeight(.medium)
-                .foregroundColor(Color(white: 0.45))
-            Text("Accept a ping to start a conversation.")
+                .foregroundColor(Color.nmaSecondary)
+            Text("Send a message to start a conversation.")
                 .font(.caption)
-                .foregroundColor(Color(white: 0.3))
+                .foregroundColor(Color.nmaSecondary.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -56,40 +55,43 @@ struct ConversationRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             Circle()
-                .fill(conversation.type.accentColor.opacity(0.15))
+                .fill(typeColor.opacity(0.1))
                 .frame(width: 44, height: 44)
                 .overlay(
                     Image(systemName: conversation.type.iconSystemName)
                         .font(.system(size: 16))
-                        .foregroundColor(conversation.type.accentColor)
+                        .foregroundColor(typeColor)
                 )
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(conversation.otherParticipantName ?? "Unknown")
                         .font(.subheadline).fontWeight(.medium)
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.nmaPrimary)
                     Spacer()
                     if let date = conversation.lastMessageAt {
                         Text(date.timeAgoDisplay())
-                            .font(.caption2)
-                            .foregroundColor(Color(white: 0.4))
+                            .font(.caption2).foregroundColor(Color.nmaSecondary)
                     }
                 }
                 Text(conversation.type.displayName)
-                    .font(.caption)
-                    .foregroundColor(conversation.type.accentColor)
+                    .font(.caption).foregroundColor(typeColor)
                 if let last = conversation.lastMessage {
-                    Text(last)
-                        .font(.caption)
-                        .foregroundColor(Color(white: 0.45))
-                        .lineLimit(1)
+                    Text(last).font(.caption).foregroundColor(Color.nmaSecondary).lineLimit(1)
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 16).padding(.vertical, 12)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
+        .background(Color.nmaBackground)
+    }
+
+    private var typeColor: Color {
+        switch conversation.type {
+        case .referral:      return .green
+        case .mentorship:    return .blue
+        case .collaboration: return Color(hex: "3C2D8A")
+        }
     }
 }

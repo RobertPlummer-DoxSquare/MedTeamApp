@@ -24,7 +24,11 @@ class OnboardingViewModel: ObservableObject {
     @Published var boardCertifications: [String] = []
     @Published var newCertification = ""
 
-    // MARK: - Step 3: Training
+    // MARK: - Step 3: NMA Region
+    @Published var nmaRegion: NMARegion?
+    @Published var suggestedRegion: NMARegion?
+
+    // MARK: - Step 4: Training
     @Published var medicalSchool = ""
     @Published var medicalSchoolGradYear = OnboardingViewModel.thisYear
     @Published var residencyProgram = ""
@@ -33,17 +37,17 @@ class OnboardingViewModel: ObservableObject {
     @Published var fellowshipProgram = ""
     @Published var fellowshipCompletionYear = OnboardingViewModel.thisYear
 
-    // MARK: - Step 4: Practice
+    // MARK: - Step 5: Availability
+    @Published var isOpenToReferrals = false
+    @Published var isOpenToCollaboration = false
+    @Published var isMentor = false
+
+    // MARK: - Practice (populated from NPI, saved silently)
     @Published var currentInstitution = ""
     @Published var practiceType: PracticeType = .academic
     @Published var stateLicenses: [String] = []
     @Published var locationRegion = ""
     @Published var languagesSpoken: [String] = ["English"]
-
-    // MARK: - Step 5: Networking
-    @Published var isAcceptingReferrals = false
-    @Published var isOpenToCollaboration = false
-    @Published var isMentor = false
 
     @Published var isSaving = false
 
@@ -63,14 +67,16 @@ class OnboardingViewModel: ObservableObject {
                 if let org = result.organizationName, currentInstitution.isEmpty {
                     currentInstitution = org
                 }
-                if let state = result.state, !stateLicenses.contains(state) {
-                    stateLicenses.append(state)
+                if let state = result.state {
+                    if !stateLicenses.contains(state) { stateLicenses.append(state) }
+                    if let region = NMARegion.fromState(state) {
+                        suggestedRegion = region
+                        if nmaRegion == nil { nmaRegion = region }
+                    }
                 }
             }
         } catch {
-            await MainActor.run {
-                lookupState = .failure(error.localizedDescription)
-            }
+            await MainActor.run { lookupState = .failure(error.localizedDescription) }
         }
     }
 
@@ -98,11 +104,14 @@ class OnboardingViewModel: ObservableObject {
             "stateLicenses":          stateLicenses,
             "locationRegion":         locationRegion,
             "languagesSpoken":        languagesSpoken,
-            "isAcceptingReferrals":   isAcceptingReferrals,
+            "isAcceptingReferrals":   isOpenToReferrals,
             "isOpenToCollaboration":  isOpenToCollaboration,
             "isMentor":               isMentor
         ]
 
+        if let region = nmaRegion {
+            data["nmaRegion"] = region.rawValue
+        }
         if hasFellowship {
             data["fellowshipProgram"] = fellowshipProgram
             data["fellowshipCompletionYear"] = fellowshipCompletionYear

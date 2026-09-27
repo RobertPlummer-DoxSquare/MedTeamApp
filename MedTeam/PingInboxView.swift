@@ -14,17 +14,16 @@ struct PingInboxView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.nmaBackground.ignoresSafeArea()
                 VStack(spacing: 0) {
                     Picker("", selection: $tab) {
                         Text("Received").tag(InboxTab.received)
                         Text("Sent").tag(InboxTab.sent)
                     }
                     .pickerStyle(.segmented)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
 
-                    Divider().background(Color(white: 0.15))
+                    Divider().foregroundColor(Color.nmaBorder)
 
                     ScrollView {
                         LazyVStack(spacing: 0) {
@@ -33,22 +32,16 @@ struct PingInboxView: View {
                                 emptyState
                             } else {
                                 ForEach(pings) { ping in
-                                    PingRowView(
-                                        ping: ping,
-                                        isReceived: tab == .received,
-                                        onAccept: { Task { await viewModel.accept(ping) } },
-                                        onDecline: { Task { await viewModel.decline(ping) } }
-                                    )
-                                    Divider().background(Color(white: 0.1)).padding(.leading, 16)
+                                    PingRowView(ping: ping, isReceived: tab == .received)
+                                    Divider().background(Color.nmaBorder).padding(.leading, 16)
                                 }
                             }
                         }
                     }
                 }
             }
-            .navigationTitle("Pings")
+            .navigationTitle("Notifications")
             .navigationBarTitleDisplayMode(.inline)
-            .colorScheme(.dark)
         }
         .onAppear { viewModel.startListening() }
         .onDisappear { viewModel.stopListening() }
@@ -56,15 +49,10 @@ struct PingInboxView: View {
 
     private var emptyState: some View {
         VStack(spacing: 12) {
-            Image(systemName: "bell.slash")
-                .font(.largeTitle)
-                .foregroundColor(Color(white: 0.3))
-            Text("No pings yet")
-                .foregroundColor(Color(white: 0.4))
-                .font(.subheadline)
+            Image(systemName: "bell.slash").font(.largeTitle).foregroundColor(Color.nmaSecondary)
+            Text("No notifications yet").foregroundColor(Color.nmaSecondary).font(.subheadline)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
+        .frame(maxWidth: .infinity).padding(.top, 60)
     }
 }
 
@@ -73,72 +61,108 @@ struct PingInboxView: View {
 struct PingRowView: View {
     let ping: Ping
     let isReceived: Bool
-    let onAccept: () -> Void
-    let onDecline: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
                 Circle()
-                    .fill(ping.type.color)
+                    .fill(typeColor.opacity(0.15))
                     .frame(width: 10, height: 10)
-                    .padding(.top, 4)
+                    .padding(.top, 5)
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text(isReceived ? (ping.fromUser?.fullname ?? "Unknown") : (ping.toUser?.fullname ?? "Unknown"))
-                            .font(.subheadline).fontWeight(.medium).foregroundColor(.white)
+                        Text(isReceived
+                            ? (ping.fromUser?.fullname ?? "Unknown")
+                            : (ping.toUser?.fullname ?? "Unknown"))
+                            .font(.subheadline).fontWeight(.medium).foregroundColor(Color.nmaPrimary)
                         Spacer()
                         Text(ping.createdAt.timeAgoDisplay())
-                            .font(.caption2).foregroundColor(Color(white: 0.4))
+                            .font(.caption2).foregroundColor(Color.nmaSecondary)
                     }
 
                     Text(ping.type.displayName)
-                        .font(.caption).foregroundColor(ping.type.color)
+                        .font(.caption).foregroundColor(typeColor)
 
-                    if let note = ping.note {
+                    if let note = ping.note, ping.type != .referral {
                         Text("\"\(note)\"")
-                            .font(.caption).foregroundColor(Color(white: 0.5))
-                            .lineLimit(2)
+                            .font(.caption).foregroundColor(Color.nmaSecondary).lineLimit(2)
                     }
 
-                    if isReceived && ping.status == .pending {
-                        HStack(spacing: 8) {
-                            Button("Accept", action: onAccept)
-                                .font(.caption).fontWeight(.medium)
-                                .padding(.horizontal, 14).padding(.vertical, 6)
-                                .background(Color.green.opacity(0.15))
-                                .foregroundColor(.green)
-                                .cornerRadius(8)
-                            Button("Decline", action: onDecline)
-                                .font(.caption)
-                                .foregroundColor(Color(white: 0.4))
-                        }
-                        .padding(.top, 2)
+                    if isReceived {
+                        receivedFooter
                     } else {
-                        statusBadge
+                        sentStatusBadge
                     }
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 16).padding(.vertical, 12)
+        .background(Color.nmaBackground)
     }
 
-    private var statusBadge: some View {
-        Text(ping.status.rawValue.capitalized)
-            .font(.caption2)
-            .foregroundColor(statusColor)
+    private var typeColor: Color {
+        switch ping.type {
+        case .referral:      return .green
+        case .mentorship:    return .blue
+        case .collaboration: return Color(hex: "3C2D8A")
+        }
+    }
+
+    @ViewBuilder
+    private var receivedFooter: some View {
+        if ping.type == .referral {
+            referralReceivedFooter
+        } else {
+            threadReceivedFooter
+        }
+    }
+
+    private var referralReceivedFooter: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            if let specialty = ping.fromUser?.specialty {
+                Text(specialty).font(.caption).foregroundColor(Color.nmaSecondary)
+            }
+            if let institution = ping.fromUser?.currentInstitution, !institution.isEmpty {
+                Text(institution).font(.caption).foregroundColor(Color.nmaSecondary.opacity(0.75))
+            }
+            if let phone = ping.fromUser?.officePhone, !phone.isEmpty {
+                Label(phone, systemImage: "phone")
+                    .font(.caption).foregroundColor(Color(hex: "155724"))
+            }
+            Text("Contact their office to coordinate care.")
+                .font(.caption).italic().foregroundColor(Color.nmaSecondary.opacity(0.7))
+        }
+        .padding(.top, 2)
+    }
+
+    private var threadReceivedFooter: some View {
+        Button {
+            NotificationCenter.default.post(name: .switchToMessages, object: nil)
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "message.fill").font(.caption2)
+                Text("View thread in Messages").font(.caption)
+            }
+            .foregroundColor(Color.nmaPrimary)
+        }
+        .padding(.top, 2)
+    }
+
+    private var sentStatusBadge: some View {
+        let (label, color, bg) = sentBadgeInfo
+        return Text(label)
+            .font(.caption2).foregroundColor(color)
             .padding(.horizontal, 8).padding(.vertical, 3)
-            .background(statusColor.opacity(0.1))
-            .cornerRadius(6)
+            .background(bg).cornerRadius(6)
     }
 
-    private var statusColor: Color {
-        switch ping.status {
-        case .pending:  return .orange
-        case .accepted: return .green
-        case .declined: return Color(white: 0.4)
+    private var sentBadgeInfo: (String, Color, Color) {
+        switch (ping.type, ping.status) {
+        case (.referral, _):  return ("Notification sent", Color.nmaSecondary, Color.nmaSubtle)
+        case (_, .accepted):  return ("Thread open", Color(hex: "155724"), Color(hex: "D4EDDA"))
+        case (_, .pending):   return ("Pending", Color(hex: "7A4000"), Color(hex: "FFF3E0"))
+        case (_, .declined):  return ("Declined", Color.nmaSecondary, Color.nmaSubtle)
         }
     }
 }

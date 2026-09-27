@@ -2,8 +2,6 @@
 //  MainTabView.swift
 //  MedTeam
 //
-//  Created by Robert Plummer on 6/24/24.
-//
 
 import SwiftUI
 
@@ -17,28 +15,40 @@ struct MainTabView: View {
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(white: 0.05, alpha: 1)
+        appearance.backgroundColor = .white
 
-        let unselected = UITabBarItemAppearance()
-        unselected.normal.iconColor = UIColor(white: 0.45, alpha: 1)
-        unselected.selected.iconColor = .white
+        let item = UITabBarItemAppearance()
+        item.normal.iconColor   = UIColor(white: 0.6, alpha: 1)
+        item.selected.iconColor = UIColor(red: 0.102, green: 0.102, blue: 0.102, alpha: 1)
+        item.normal.titleTextAttributes   = [.foregroundColor: UIColor(white: 0.6, alpha: 1)]
+        item.selected.titleTextAttributes = [.foregroundColor: UIColor(red: 0.102, green: 0.102, blue: 0.102, alpha: 1)]
 
-        appearance.stackedLayoutAppearance = unselected
-        appearance.inlineLayoutAppearance = unselected
-        appearance.compactInlineLayoutAppearance = unselected
+        appearance.stackedLayoutAppearance      = item
+        appearance.inlineLayoutAppearance       = item
+        appearance.compactInlineLayoutAppearance = item
 
-        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().standardAppearance   = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
+
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = UIColor(red: 0.11, green: 0.11, blue: 0.118, alpha: 1.0)
+        navAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance = navAppearance
+        UINavigationBar.appearance().tintColor = .white
     }
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            ExploreView()
-                .tabItem { Label("Explore", systemImage: "magnifyingglass") }
+            MemberDirectoryView()
+                .tabItem { Label("Directory", systemImage: selectedTab == 0 ? "person.2.fill" : "person.2") }
                 .tag(0)
 
             PingInboxView()
-                .tabItem { Label("Pings", systemImage: selectedTab == 1 ? "bell.fill" : "bell") }
+                .tabItem { Label("Notifications", systemImage: selectedTab == 1 ? "bell.fill" : "bell") }
                 .badge(pingInboxVM.unreadCount)
                 .tag(1)
 
@@ -50,7 +60,7 @@ struct MainTabView: View {
                 .tabItem { Label("Profile", systemImage: selectedTab == 3 ? "person.fill" : "person") }
                 .tag(3)
         }
-        .tint(.white)
+        .tint(Color.nmaPrimary)
         .onAppear {
             pingInboxVM.startListening()
             conversationVM.startListening()

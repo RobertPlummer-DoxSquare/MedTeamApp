@@ -35,16 +35,4 @@ class PingInboxViewModel: ObservableObject {
         receivedListener?.remove()
         sentListener?.remove()
     }
-
-    func accept(_ ping: Ping) async {
-        guard let id = ping.id else { return }
-        try? await PingService.shared.updateStatus(id, status: .accepted)
-        try? await MessagingService.shared.createConversation(from: ping)
-        NotificationCenter.default.post(name: .switchToMessages, object: nil)
-    }
-
-    func decline(_ ping: Ping) async {
-        guard let id = ping.id else { return }
-        try? await PingService.shared.updateStatus(id, status: .declined)
-    }
 }

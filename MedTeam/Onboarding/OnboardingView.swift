@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-// MARK: - Constants (accessible app-wide within the module)
+// MARK: - Constants
 
 let medSpecialties = [
     "Anesthesiology", "Cardiology", "Dermatology", "Emergency Medicine",
@@ -30,7 +30,7 @@ let spokenLanguages = [
     "Arabic","Portuguese","Russian","Japanese","Korean","Other"
 ]
 
-// MARK: - Onboarding Container
+// MARK: - Container
 
 struct OnboardingView: View {
     @StateObject private var vm = OnboardingViewModel()
@@ -39,7 +39,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             VStack(spacing: 0) {
                 progressBar
                     .padding(.horizontal, 24)
@@ -50,23 +50,22 @@ struct OnboardingView: View {
                     switch step {
                     case 1: OnboardingStep1NPI(vm: vm, onNext: { step = 2 })
                     case 2: OnboardingStep2Credentials(vm: vm, onNext: { step = 3 }, onBack: { step = 1 })
-                    case 3: OnboardingStep3Training(vm: vm, onNext: { step = 4 }, onBack: { step = 2 })
-                    case 4: OnboardingStep4Practice(vm: vm, onNext: { step = 5 }, onBack: { step = 3 })
-                    case 5: OnboardingStep5Networking(vm: vm, onBack: { step = 4 })
+                    case 3: OnboardingStep3Region(vm: vm, onNext: { step = 4 }, onBack: { step = 2 })
+                    case 4: OnboardingStep4Training(vm: vm, onNext: { step = 5 }, onBack: { step = 3 })
+                    case 5: OnboardingStep5Availability(vm: vm, onBack: { step = 4 })
                     default: EmptyView()
                     }
                 }
                 .animation(.easeInOut(duration: 0.22), value: step)
             }
         }
-        .colorScheme(.dark)
     }
 
     private var progressBar: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                Capsule().fill(Color(white: 0.15)).frame(height: 3)
-                Capsule().fill(Color.white)
+                Capsule().fill(Color.nmaBorder).frame(height: 3)
+                Capsule().fill(Color.nmaPrimary)
                     .frame(width: geo.size.width * CGFloat(step) / CGFloat(totalSteps), height: 3)
                     .animation(.easeInOut, value: step)
             }
@@ -85,12 +84,11 @@ private struct OnboardingHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Step \(step) of 5")
-                .font(.caption)
-                .foregroundColor(Color(white: 0.4))
+                .font(.caption).foregroundColor(Color.nmaSecondary)
             Text(title)
-                .font(.title2).fontWeight(.semibold).foregroundColor(.white)
+                .font(.title2).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
             Text(subtitle)
-                .font(.subheadline).foregroundColor(Color(white: 0.45))
+                .font(.subheadline).foregroundColor(Color.nmaSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -114,11 +112,11 @@ private struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Group {
-                if loading { ProgressView().tint(.black) }
-                else { Text(title).font(.subheadline).fontWeight(.semibold).foregroundColor(.black) }
+                if loading { ProgressView().tint(.white) }
+                else { Text(title).font(.subheadline).fontWeight(.semibold).foregroundColor(.white) }
             }
             .frame(maxWidth: .infinity).frame(height: 50)
-            .background(Color.white).cornerRadius(12)
+            .background(Color.nmaPrimary).cornerRadius(12)
         }
         .padding(.horizontal, 24)
         .disabled(loading)
@@ -131,7 +129,7 @@ private struct SecondaryButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(title).font(.subheadline).foregroundColor(Color(white: 0.45))
+            Text(title).font(.subheadline).foregroundColor(Color.nmaSecondary)
         }
     }
 }
@@ -145,9 +143,9 @@ private struct ChipToggle: View {
         Button(action: action) {
             Text(label)
                 .font(.subheadline)
-                .foregroundColor(selected ? .black : Color(white: 0.7))
+                .foregroundColor(selected ? .white : Color.nmaSecondary)
                 .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(selected ? Color.white : Color(white: 0.12))
+                .background(selected ? Color.nmaPrimary : Color.nmaSubtle)
                 .cornerRadius(20)
         }
     }
@@ -177,49 +175,43 @@ struct OnboardingStep1NPI: View {
                     case .success:
                         if let r = vm.npiResult {
                             HStack(spacing: 12) {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .foregroundColor(.green)
+                                Image(systemName: "checkmark.seal.fill").foregroundColor(.green)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(r.fullName)
-                                        .font(.subheadline).fontWeight(.semibold).foregroundColor(.white)
+                                        .font(.subheadline).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
                                     if !r.specialty.isEmpty {
-                                        Text(r.specialty).font(.caption).foregroundColor(Color(white: 0.5))
+                                        Text(r.specialty).font(.caption).foregroundColor(Color.nmaSecondary)
                                     }
                                     if let org = r.organizationName {
-                                        Text(org).font(.caption).foregroundColor(Color(white: 0.5))
+                                        Text(org).font(.caption).foregroundColor(Color.nmaSecondary)
                                     }
                                 }
                                 Spacer()
                             }
                             .padding(14)
-                            .background(Color(white: 0.08))
+                            .background(Color.nmaSurface)
                             .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
                             .padding(.horizontal, 24)
                         }
                     case .failure(let msg):
-                        Text(msg)
-                            .font(.caption).foregroundColor(.red)
-                            .padding(.horizontal, 24)
+                        Text(msg).font(.caption).foregroundColor(.red).padding(.horizontal, 24)
                     default:
                         EmptyView()
                     }
 
-                    PrimaryButton(
-                        "Look Up NPI",
-                        loading: vm.lookupState == .loading
-                    ) {
+                    PrimaryButton("Look Up NPI", loading: vm.lookupState == .loading) {
                         Task { await vm.lookupNPI() }
                     }
 
-                    Divider().background(Color(white: 0.12)).padding(.horizontal, 24)
+                    Divider().foregroundColor(Color.nmaBorder).padding(.horizontal, 24)
 
                     SecondaryButton(title: "Skip for now — enter manually") { onNext() }
                 }
                 .padding(.bottom, 40)
 
                 if vm.lookupState == .success {
-                    PrimaryButton("Continue") { onNext() }
-                        .padding(.bottom, 32)
+                    PrimaryButton("Continue") { onNext() }.padding(.bottom, 32)
                 }
             }
         }
@@ -235,11 +227,6 @@ struct OnboardingStep2Credentials: View {
     @State private var specialtySearch = ""
     @State private var showSpecialtyPicker = false
 
-    var filteredSpecialties: [String] {
-        specialtySearch.isEmpty ? medSpecialties :
-            medSpecialties.filter { $0.localizedCaseInsensitiveContains(specialtySearch) }
-    }
-
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
@@ -250,95 +237,77 @@ struct OnboardingStep2Credentials: View {
                 )
 
                 VStack(alignment: .leading, spacing: 20) {
-                    // Degree Type
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Degree").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
+                    sectionLabel("Degree")
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(DegreeType.allCases, id: \.self) { deg in
+                                ChipToggle(label: deg.rawValue, selected: vm.degreeType == deg) {
+                                    vm.degreeType = deg
+                                }
+                            }
+                        }.padding(.horizontal, 24)
+                    }
+
+                    sectionLabel("Specialty")
+                    Button { showSpecialtyPicker = true } label: {
+                        HStack {
+                            Text(vm.specialty.isEmpty ? "Select specialty" : vm.specialty)
+                                .foregroundColor(vm.specialty.isEmpty ? Color.nmaSecondary : Color.nmaPrimary)
+                                .font(.subheadline)
+                            Spacer()
+                            Image(systemName: "chevron.down").foregroundColor(Color.nmaSecondary).font(.caption)
+                        }
+                        .padding(14)
+                        .background(Color.nmaSurface)
+                        .cornerRadius(12)
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
+                        .padding(.horizontal, 24)
+                    }
+
+                    if !vm.specialty.isEmpty {
+                        sectionLabel("Subspecialties (max 3)")
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
-                                ForEach(DegreeType.allCases, id: \.self) { deg in
-                                    ChipToggle(label: deg.rawValue, selected: vm.degreeType == deg) {
-                                        vm.degreeType = deg
+                                ForEach(medSpecialties.filter { $0 != vm.specialty }, id: \.self) { sub in
+                                    let sel = vm.subspecialties.contains(sub)
+                                    ChipToggle(label: sub, selected: sel) {
+                                        if sel { vm.subspecialties.removeAll { $0 == sub } }
+                                        else if vm.subspecialties.count < 3 { vm.subspecialties.append(sub) }
                                     }
                                 }
-                            }
-                            .padding(.horizontal, 24)
+                            }.padding(.horizontal, 24)
                         }
                     }
 
-                    // Specialty
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Specialty").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                        Button { showSpecialtyPicker = true } label: {
-                            HStack {
-                                Text(vm.specialty.isEmpty ? "Select specialty" : vm.specialty)
-                                    .foregroundColor(vm.specialty.isEmpty ? Color(white: 0.4) : .white)
-                                    .font(.subheadline)
-                                Spacer()
-                                Image(systemName: "chevron.down").foregroundColor(Color(white: 0.4)).font(.caption)
-                            }
+                    sectionLabel("Board Certifications")
+                    HStack(spacing: 8) {
+                        TextField("e.g. ABIM – Internal Medicine", text: $vm.newCertification)
+                            .font(.subheadline).foregroundColor(.nmaPrimary)
                             .padding(14)
-                            .background(Color(white: 0.1))
+                            .background(Color.nmaSurface)
                             .cornerRadius(12)
-                            .padding(.horizontal, 24)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
+                        Button {
+                            let cert = vm.newCertification.trimmingCharacters(in: .whitespaces)
+                            if !cert.isEmpty { vm.boardCertifications.append(cert); vm.newCertification = "" }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(Color.nmaPrimary).font(.title3)
                         }
-                    }
+                    }.padding(.horizontal, 24)
 
-                    // Subspecialties (max 3)
-                    if !vm.specialty.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Subspecialties (max 3)").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(medSpecialties.filter { $0 != vm.specialty }, id: \.self) { sub in
-                                        let selected = vm.subspecialties.contains(sub)
-                                        ChipToggle(label: sub, selected: selected) {
-                                            if selected {
-                                                vm.subspecialties.removeAll { $0 == sub }
-                                            } else if vm.subspecialties.count < 3 {
-                                                vm.subspecialties.append(sub)
-                                            }
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal, 24)
+                    ForEach(vm.boardCertifications, id: \.self) { cert in
+                        HStack {
+                            Text(cert).font(.subheadline).foregroundColor(Color.nmaPrimary)
+                            Spacer()
+                            Button { vm.boardCertifications.removeAll { $0 == cert } } label: {
+                                Image(systemName: "xmark").font(.caption).foregroundColor(Color.nmaSecondary)
                             }
-                        }
-                    }
-
-                    // Board Certifications
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Board Certifications").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                        HStack(spacing: 8) {
-                            TextField("e.g. ABIM – Internal Medicine", text: $vm.newCertification)
-                                .font(.subheadline)
-                                .padding(14)
-                                .background(Color(white: 0.1))
-                                .cornerRadius(12)
-                            Button {
-                                let cert = vm.newCertification.trimmingCharacters(in: .whitespaces)
-                                if !cert.isEmpty { vm.boardCertifications.append(cert); vm.newCertification = "" }
-                            } label: {
-                                Image(systemName: "plus.circle.fill").foregroundColor(.white).font(.title3)
-                            }
-                        }
-                        .padding(.horizontal, 24)
-
-                        ForEach(vm.boardCertifications, id: \.self) { cert in
-                            HStack {
-                                Text(cert).font(.subheadline).foregroundColor(.white)
-                                Spacer()
-                                Button { vm.boardCertifications.removeAll { $0 == cert } } label: {
-                                    Image(systemName: "xmark").font(.caption).foregroundColor(Color(white: 0.4))
-                                }
-                            }
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 4)
-                        }
+                        }.padding(.horizontal, 24).padding(.vertical, 4)
                     }
                 }
 
                 Spacer().frame(height: 32)
-
                 VStack(spacing: 12) {
                     PrimaryButton("Continue") { onNext() }
                     SecondaryButton(title: "Back") { onBack() }
@@ -349,6 +318,10 @@ struct OnboardingStep2Credentials: View {
         .sheet(isPresented: $showSpecialtyPicker) {
             SpecialtyPickerSheet(selected: $vm.specialty, search: $specialtySearch)
         }
+    }
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text).font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
     }
 }
 
@@ -363,35 +336,128 @@ private struct SpecialtyPickerSheet: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                List(filtered, id: \.self) { spec in
-                    Button {
-                        selected = spec
-                        dismiss()
-                    } label: {
-                        HStack {
-                            Text(spec).foregroundColor(.white)
-                            Spacer()
-                            if selected == spec { Image(systemName: "checkmark").foregroundColor(.blue) }
+            List(filtered, id: \.self) { spec in
+                Button {
+                    selected = spec; dismiss()
+                } label: {
+                    HStack {
+                        Text(spec).foregroundColor(Color.nmaPrimary)
+                        Spacer()
+                        if selected == spec {
+                            Image(systemName: "checkmark").foregroundColor(Color.nmaPrimary)
                         }
                     }
-                    .listRowBackground(Color(white: 0.08))
                 }
-                .listStyle(.plain)
-                .searchable(text: $search, prompt: "Search specialties")
             }
+            .listStyle(.plain)
+            .searchable(text: $search, prompt: "Search specialties")
             .navigationTitle("Specialty")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
-            .colorScheme(.dark)
         }
     }
 }
 
-// MARK: - Step 3: Training History
+// MARK: - Step 3: NMA Region
 
-struct OnboardingStep3Training: View {
+struct OnboardingStep3Region: View {
+    @ObservedObject var vm: OnboardingViewModel
+    let onNext: () -> Void
+    let onBack: () -> Void
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                OnboardingHeader(
+                    step: 3,
+                    title: "Your NMA Region",
+                    subtitle: "Your region connects you with NMA members in your area."
+                )
+
+                VStack(alignment: .leading, spacing: 12) {
+                    if let suggested = vm.suggestedRegion {
+                        Text("Suggested from your license state")
+                            .font(.caption).foregroundColor(Color.nmaSecondary)
+                            .padding(.horizontal, 24)
+
+                        RegionOptionCard(region: suggested, isSelected: vm.nmaRegion == suggested) {
+                            vm.nmaRegion = suggested
+                        }
+                        .padding(.horizontal, 24)
+
+                        Text("Other regions")
+                            .font(.caption).foregroundColor(Color.nmaSecondary)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 8)
+                    } else {
+                        Text("Select your NMA region")
+                            .font(.caption).foregroundColor(Color.nmaSecondary)
+                            .padding(.horizontal, 24)
+                    }
+
+                    ForEach(NMARegion.allCases.filter { $0 != vm.suggestedRegion }, id: \.self) { region in
+                        RegionOptionCard(region: region, isSelected: vm.nmaRegion == region) {
+                            vm.nmaRegion = region
+                        }
+                        .padding(.horizontal, 24)
+                    }
+                }
+
+                Spacer().frame(height: 32)
+                VStack(spacing: 12) {
+                    PrimaryButton("Continue") { onNext() }
+                    SecondaryButton(title: "Back") { onBack() }
+                }
+                .padding(.bottom, 40)
+            }
+        }
+    }
+}
+
+private struct RegionOptionCard: View {
+    let region: NMARegion
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text(region.displayName)
+                            .font(.subheadline).fontWeight(.semibold)
+                            .foregroundColor(isSelected ? region.badgeForeground : Color.nmaPrimary)
+                        Text(region.statesDisplay)
+                            .font(.caption).foregroundColor(Color.nmaSecondary)
+                            .lineLimit(1)
+                    }
+                    Text("Chair: \(region.chairName)")
+                        .font(.caption).foregroundColor(Color.nmaSecondary)
+                    if region.nextMeeting != "TBD" {
+                        Text(region.nextMeeting)
+                            .font(.caption2).foregroundColor(Color.nmaSecondary.opacity(0.7))
+                    }
+                }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(region.badgeForeground)
+                }
+            }
+            .padding(14)
+            .background(isSelected ? region.badgeBackground : Color.nmaSurface)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? region.badgeForeground.opacity(0.3) : Color.nmaBorder, lineWidth: 0.5)
+            )
+        }
+    }
+}
+
+// MARK: - Step 4: Training History
+
+struct OnboardingStep4Training: View {
     @ObservedObject var vm: OnboardingViewModel
     let onNext: () -> Void
     let onBack: () -> Void
@@ -402,31 +468,28 @@ struct OnboardingStep3Training: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
                 OnboardingHeader(
-                    step: 3,
+                    step: 4,
                     title: "Training History",
                     subtitle: "Helps with mentorship matching and finding program colleagues."
                 )
 
                 VStack(alignment: .leading, spacing: 20) {
-                    // Medical School
                     sectionLabel("Medical School")
                     TextField("Institution name", text: $vm.medicalSchool).modifier(TextFieldModifier())
                     yearPicker("Graduation Year", selection: $vm.medicalSchoolGradYear, years: yearRange)
 
-                    Divider().background(Color(white: 0.12)).padding(.horizontal, 24)
+                    Divider().foregroundColor(Color.nmaBorder).padding(.horizontal, 24)
 
-                    // Residency
                     sectionLabel("Residency")
                     TextField("Program name", text: $vm.residencyProgram).modifier(TextFieldModifier())
                     yearPicker("Completion Year", selection: $vm.residencyCompletionYear, years: yearRange)
 
-                    Divider().background(Color(white: 0.12)).padding(.horizontal, 24)
+                    Divider().foregroundColor(Color.nmaBorder).padding(.horizontal, 24)
 
-                    // Fellowship
                     HStack {
                         sectionLabel("Fellowship")
                         Spacer()
-                        Toggle("", isOn: $vm.hasFellowship).labelsHidden().tint(.blue)
+                        Toggle("", isOn: $vm.hasFellowship).labelsHidden().tint(Color.nmaPrimary)
                     }
                     .padding(.horizontal, 24)
 
@@ -437,7 +500,6 @@ struct OnboardingStep3Training: View {
                 }
 
                 Spacer().frame(height: 32)
-
                 VStack(spacing: 12) {
                     PrimaryButton("Continue") { onNext() }
                     SecondaryButton(title: "Back") { onBack() }
@@ -447,161 +509,27 @@ struct OnboardingStep3Training: View {
         }
     }
 
-    @ViewBuilder
     private func sectionLabel(_ text: String) -> some View {
-        Text(text).font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
+        Text(text).font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
     }
 
     @ViewBuilder
     private func yearPicker(_ label: String, selection: Binding<Int>, years: [Int]) -> some View {
         HStack {
-            Text(label).font(.subheadline).foregroundColor(Color(white: 0.6))
+            Text(label).font(.subheadline).foregroundColor(Color.nmaSecondary)
             Spacer()
             Picker("", selection: selection) {
                 ForEach(years, id: \.self) { Text(String($0)).tag($0) }
             }
-            .pickerStyle(.menu)
-            .tint(.white)
+            .pickerStyle(.menu).tint(Color.nmaPrimary)
         }
         .padding(.horizontal, 24)
     }
 }
 
-// MARK: - Step 4: Practice & Location
+// MARK: - Step 5: Availability
 
-struct OnboardingStep4Practice: View {
-    @ObservedObject var vm: OnboardingViewModel
-    let onNext: () -> Void
-    let onBack: () -> Void
-    @State private var stateSearch = ""
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                OnboardingHeader(
-                    step: 4,
-                    title: "Practice & Location",
-                    subtitle: "Where do you work and what type of practice?"
-                )
-
-                VStack(alignment: .leading, spacing: 20) {
-                    // Institution
-                    Text("Current Institution").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                    TextField("Hospital or practice name", text: $vm.currentInstitution).modifier(TextFieldModifier())
-
-                    // Practice Type
-                    Text("Practice Type").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(PracticeType.allCases, id: \.self) { pt in
-                                ChipToggle(label: pt.rawValue, selected: vm.practiceType == pt) {
-                                    vm.practiceType = pt
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 24)
-                    }
-
-                    // State Licenses
-                    Text("State Licenses").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(usStates, id: \.self) { state in
-                                ChipToggle(label: state, selected: vm.stateLicenses.contains(state)) {
-                                    if vm.stateLicenses.contains(state) {
-                                        vm.stateLicenses.removeAll { $0 == state }
-                                    } else {
-                                        vm.stateLicenses.append(state)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 24)
-                    }
-
-                    // Selected state tags
-                    if !vm.stateLicenses.isEmpty {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 6) {
-                                ForEach(vm.stateLicenses, id: \.self) { state in
-                                    Text(state)
-                                        .font(.caption).fontWeight(.medium)
-                                        .padding(.horizontal, 10).padding(.vertical, 5)
-                                        .background(Color.blue.opacity(0.2))
-                                        .foregroundColor(.blue)
-                                        .cornerRadius(8)
-                                }
-                            }
-                            .padding(.horizontal, 24)
-                        }
-                    }
-
-                    // Location
-                    Text("Metro Area / Region").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                    TextField("e.g. New York, NY", text: $vm.locationRegion).modifier(TextFieldModifier())
-
-                    // Languages
-                    Text("Languages Spoken").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
-                    FlowChips(items: spokenLanguages, selected: $vm.languagesSpoken)
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 24)
-                }
-
-                Spacer().frame(height: 32)
-
-                VStack(spacing: 12) {
-                    PrimaryButton("Continue") { onNext() }
-                    SecondaryButton(title: "Back") { onBack() }
-                }
-                .padding(.bottom, 40)
-            }
-        }
-    }
-}
-
-// Flow layout for language chips
-private struct FlowChips: View {
-    let items: [String]
-    @Binding var selected: [String]
-
-    var body: some View {
-        var chips: [String] = []
-        return GeometryReader { geo in
-            self.generateContent(in: geo)
-        }
-        .frame(height: 80)
-    }
-
-    private func generateContent(in geo: GeometryProxy) -> some View {
-        var width = CGFloat.zero
-        var height = CGFloat.zero
-        return ZStack(alignment: .topLeading) {
-            ForEach(items, id: \.self) { item in
-                ChipToggle(label: item, selected: selected.contains(item)) {
-                    if selected.contains(item) { selected.removeAll { $0 == item } }
-                    else { selected.append(item) }
-                }
-                .alignmentGuide(.leading) { d in
-                    if abs(width - d.width) > geo.size.width {
-                        width = 0; height -= d.height + 8
-                    }
-                    let result = width
-                    if item == items.last { width = 0 } else { width -= d.width + 8 }
-                    return result
-                }
-                .alignmentGuide(.top) { _ in
-                    let result = height
-                    if item == items.last { height = 0 }
-                    return result
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Step 5: Networking Preferences
-
-struct OnboardingStep5Networking: View {
+struct OnboardingStep5Availability: View {
     @ObservedObject var vm: OnboardingViewModel
     let onBack: () -> Void
     @State private var error: String?
@@ -611,44 +539,45 @@ struct OnboardingStep5Networking: View {
             VStack(spacing: 0) {
                 OnboardingHeader(
                     step: 5,
-                    title: "Networking Preferences",
+                    title: "Availability",
                     subtitle: "Let colleagues know how they can connect with you."
                 )
 
                 VStack(spacing: 0) {
-                    preferenceToggle(
-                        icon: "arrow.left.arrow.right.circle",
-                        title: "Accepting Referrals",
-                        subtitle: "Colleagues can refer patients to you",
-                        isOn: $vm.isAcceptingReferrals
+                    availabilityRow(
+                        icon: "phone.circle",
+                        title: "Accept Referral Notifications",
+                        subtitle: "Colleagues can send you a \"call my office\" alert",
+                        isOn: $vm.isOpenToReferrals
                     )
-                    Divider().background(Color(white: 0.12))
+                    Divider().foregroundColor(Color.nmaBorder)
 
-                    preferenceToggle(
+                    availabilityRow(
                         icon: "flask",
-                        title: "Open to Collaboration",
+                        title: "Open to Research Collaboration",
                         subtitle: "Research or clinical collaboration",
                         isOn: $vm.isOpenToCollaboration
                     )
-                    Divider().background(Color(white: 0.12))
+                    Divider().foregroundColor(Color.nmaBorder)
 
-                    preferenceToggle(
+                    availabilityRow(
                         icon: "graduationcap",
                         title: "Available as Mentor",
                         subtitle: "Residents and students can reach out",
                         isOn: $vm.isMentor
                     )
                 }
-                .background(Color(white: 0.08))
+                .background(Color.nmaSurface)
                 .cornerRadius(14)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.nmaBorder, lineWidth: 0.5))
                 .padding(.horizontal, 24)
 
                 if let error {
-                    Text(error).font(.caption).foregroundColor(.red).padding(.horizontal, 24).padding(.top, 12)
+                    Text(error).font(.caption).foregroundColor(.red)
+                        .padding(.horizontal, 24).padding(.top, 12)
                 }
 
                 Spacer().frame(height: 40)
-
                 VStack(spacing: 12) {
                     PrimaryButton("Complete Profile", loading: vm.isSaving) {
                         Task {
@@ -664,21 +593,56 @@ struct OnboardingStep5Networking: View {
     }
 
     @ViewBuilder
-    private func preferenceToggle(icon: String, title: String, subtitle: String, isOn: Binding<Bool>) -> some View {
+    private func availabilityRow(icon: String, title: String, subtitle: String, isOn: Binding<Bool>) -> some View {
         HStack(spacing: 14) {
-            Image(systemName: icon).font(.title3).foregroundColor(Color(white: 0.5)).frame(width: 24)
+            Image(systemName: icon)
+                .font(.title3).foregroundColor(Color.nmaSecondary).frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline).fontWeight(.medium).foregroundColor(.white)
-                Text(subtitle).font(.caption).foregroundColor(Color(white: 0.45))
+                Text(title).font(.subheadline).fontWeight(.medium).foregroundColor(Color.nmaPrimary)
+                Text(subtitle).font(.caption).foregroundColor(Color.nmaSecondary)
             }
             Spacer()
-            Toggle("", isOn: isOn).labelsHidden().tint(.blue)
+            Toggle("", isOn: isOn).labelsHidden().tint(Color.nmaPrimary)
         }
         .padding(.horizontal, 16).padding(.vertical, 14)
     }
 }
 
-// MARK: - Preview
+// MARK: - Flow layout (languages, unchanged)
+
+private struct FlowChips: View {
+    let items: [String]
+    @Binding var selected: [String]
+
+    var body: some View {
+        GeometryReader { geo in self.generateContent(in: geo) }
+            .frame(height: 80)
+    }
+
+    private func generateContent(in geo: GeometryProxy) -> some View {
+        var width = CGFloat.zero
+        var height = CGFloat.zero
+        return ZStack(alignment: .topLeading) {
+            ForEach(items, id: \.self) { item in
+                ChipToggle(label: item, selected: selected.contains(item)) {
+                    if selected.contains(item) { selected.removeAll { $0 == item } }
+                    else { selected.append(item) }
+                }
+                .alignmentGuide(.leading) { d in
+                    if abs(width - d.width) > geo.size.width { width = 0; height -= d.height + 8 }
+                    let result = width
+                    if item == items.last { width = 0 } else { width -= d.width + 8 }
+                    return result
+                }
+                .alignmentGuide(.top) { _ in
+                    let result = height
+                    if item == items.last { height = 0 }
+                    return result
+                }
+            }
+        }
+    }
+}
 
 struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {

@@ -1,8 +1,6 @@
 //
 //  Settings.swift
-//  MedTeamApp
-//
-//  Created by Robert Plummer on 7/4/24.
+//  MedTeam
 //
 
 import SwiftUI
@@ -13,9 +11,11 @@ import Combine
 // MARK: - SettingsViewModel
 
 class SettingsViewModel: ObservableObject {
-    @Published var acceptingReferrals = false
+    @Published var isOpenToReferrals = false
     @Published var openToCollaboration = false
     @Published var isMentor = false
+    @Published var officePhone = ""
+    @Published var nmaRegion: NMARegion?
     @Published var user: User?
 
     private var cancellables = Set<AnyCancellable>()
@@ -25,15 +25,26 @@ class SettingsViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] user in
                 self?.user = user
-                self?.acceptingReferrals = user?.isAcceptingReferrals ?? false
+                self?.isOpenToReferrals   = user?.isOpenToReferrals ?? false
                 self?.openToCollaboration = user?.isOpenToCollaboration ?? false
-                self?.isMentor = user?.isMentor ?? false
+                self?.isMentor            = user?.isMentor ?? false
+                self?.officePhone         = user?.officePhone ?? ""
+                self?.nmaRegion           = user?.nmaRegion
             }
             .store(in: &cancellables)
     }
 
     func updateField(_ field: String, value: Any) {
         UserService.shared.updateField(field, value: value)
+    }
+
+    func saveOfficePhone() {
+        updateField("officePhone", value: officePhone)
+    }
+
+    func saveRegion() {
+        guard let region = nmaRegion else { return }
+        updateField("nmaRegion", value: region.rawValue)
     }
 }
 
@@ -47,7 +58,6 @@ struct Settings: View {
     var body: some View {
         NavigationView {
             List {
-                // Profile
                 Section("Profile") {
                     NavigationLink("Specialty & Credentials") { EditSpecialtyView() }
                     NavigationLink("Practice & Institution")  { EditPracticeView() }
@@ -55,23 +65,48 @@ struct Settings: View {
                     NavigationLink("Languages")               { EditLanguagesView() }
                 }
 
-                // Networking
-                Section("Networking") {
-                    Toggle("Accepting Referrals", isOn: $viewModel.acceptingReferrals)
-                        .onChange(of: viewModel.acceptingReferrals) {
-                            viewModel.updateField("isAcceptingReferrals", value: viewModel.acceptingReferrals)
+                Section("NMA Region") {
+                    Picker("Region", selection: $viewModel.nmaRegion) {
+                        Text("Not set").tag(NMARegion?.none)
+                        ForEach(NMARegion.allCases, id: \.self) { region in
+                            Text(region.displayName).tag(NMARegion?.some(region))
                         }
-                    Toggle("Open to Collaboration", isOn: $viewModel.openToCollaboration)
-                        .onChange(of: viewModel.openToCollaboration) {
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: viewModel.nmaRegion) { _ in viewModel.saveRegion() }
+                }
+
+                Section("Availability") {
+                    Toggle("Accept referral notifications", isOn: $viewModel.isOpenToReferrals)
+                        .tint(Color.nmaPrimary)
+                        .onChange(of: viewModel.isOpenToReferrals) { _ in
+                            viewModel.updateField("isAcceptingReferrals", value: viewModel.isOpenToReferrals)
+                        }
+
+                    if viewModel.isOpenToReferrals {
+                        HStack {
+                            TextField("Office phone", text: $viewModel.officePhone)
+                                .keyboardType(.phonePad)
+                                .foregroundColor(.nmaPrimary)
+                            Spacer()
+                            Button("Save") { viewModel.saveOfficePhone() }
+                                .font(.caption).foregroundColor(.nmaPrimary)
+                        }
+                    }
+
+                    Toggle("Open to research collaboration", isOn: $viewModel.openToCollaboration)
+                        .tint(Color.nmaPrimary)
+                        .onChange(of: viewModel.openToCollaboration) { _ in
                             viewModel.updateField("isOpenToCollaboration", value: viewModel.openToCollaboration)
                         }
-                    Toggle("Available as Mentor", isOn: $viewModel.isMentor)
-                        .onChange(of: viewModel.isMentor) {
+
+                    Toggle("Available as mentor", isOn: $viewModel.isMentor)
+                        .tint(Color.nmaPrimary)
+                        .onChange(of: viewModel.isMentor) { _ in
                             viewModel.updateField("isMentor", value: viewModel.isMentor)
                         }
                 }
 
-                // Verification
                 Section("Verification") {
                     NavigationLink {
                         NPIVerificationView()
@@ -87,20 +122,14 @@ struct Settings: View {
                     }
                 }
 
-                // Account
                 Section("Account") {
-                    Button("Log Out", role: .destructive) {
-                        AuthService.shared.signOut()
-                    }
-                    Button("Delete Account", role: .destructive) {
-                        showDeleteConfirmation = true
-                    }
+                    Button("Log Out", role: .destructive) { AuthService.shared.signOut() }
+                    Button("Delete Account", role: .destructive) { showDeleteConfirmation = true }
                 }
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .colorScheme(.dark)
             .sheet(isPresented: $showDeleteConfirmation) {
                 ConfirmationView { deleteAccount() }
             }
@@ -110,9 +139,7 @@ struct Settings: View {
         }
     }
 
-    private func deleteAccount() {
-        showDeleteAlert = true
-    }
+    private func deleteAccount() { showDeleteAlert = true }
 }
 
 // MARK: - NPI Verification View
@@ -124,11 +151,11 @@ struct NPIVerificationView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Enter your 10-digit NPI to verify your identity.")
-                        .font(.subheadline).foregroundColor(Color(white: 0.5))
+                        .font(.subheadline).foregroundColor(Color.nmaSecondary)
                         .padding(.horizontal, 24).padding(.top, 16)
 
                     TextField("NPI Number", text: $npiInput)
@@ -141,11 +168,15 @@ struct NPIVerificationView: View {
                             HStack(spacing: 12) {
                                 Image(systemName: "checkmark.seal.fill").foregroundColor(.green)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(r.fullName).font(.subheadline).fontWeight(.semibold).foregroundColor(.white)
-                                    Text(r.specialty).font(.caption).foregroundColor(Color(white: 0.5))
+                                    Text(r.fullName).font(.subheadline).fontWeight(.semibold)
+                                        .foregroundColor(Color.nmaPrimary)
+                                    Text(r.specialty).font(.caption).foregroundColor(Color.nmaSecondary)
                                 }
                             }
-                            .padding(14).background(Color(white: 0.08)).cornerRadius(12)
+                            .padding(14)
+                            .background(Color.nmaSurface)
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
                             .padding(.horizontal, 24)
                         }
                     case .failure(let msg):
@@ -169,11 +200,11 @@ struct NPIVerificationView: View {
                         }
                     } label: {
                         Group {
-                            if lookupState == .loading { ProgressView().tint(.black) }
-                            else { Text("Verify NPI").font(.subheadline).fontWeight(.semibold).foregroundColor(.black) }
+                            if lookupState == .loading { ProgressView().tint(.white) }
+                            else { Text("Verify NPI").font(.subheadline).fontWeight(.semibold).foregroundColor(.white) }
                         }
                         .frame(maxWidth: .infinity).frame(height: 50)
-                        .background(Color.white).cornerRadius(12)
+                        .background(Color.nmaPrimary).cornerRadius(12)
                     }
                     .padding(.horizontal, 24)
                     .disabled(lookupState == .loading)
@@ -182,7 +213,6 @@ struct NPIVerificationView: View {
         }
         .navigationTitle("NPI Verification")
         .navigationBarTitleDisplayMode(.inline)
-        .colorScheme(.dark)
     }
 }
 
@@ -199,10 +229,11 @@ struct EditSpecialtyView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Degree").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24).padding(.top, 16)
+                    Text("Degree").font(.caption).foregroundColor(Color.nmaSecondary)
+                        .padding(.horizontal, 24).padding(.top, 16)
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(DegreeType.allCases, id: \.self) { deg in
@@ -211,10 +242,10 @@ struct EditSpecialtyView: View {
                         }.padding(.horizontal, 24)
                     }
 
-                    Text("Specialty").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
+                    Text("Specialty").font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
                     TextField("Specialty", text: $specialty).modifier(TextFieldModifier())
 
-                    Text("Subspecialties").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
+                    Text("Subspecialties").font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(medSpecialties.filter { $0 != specialty }, id: \.self) { sub in
@@ -224,33 +255,35 @@ struct EditSpecialtyView: View {
                                     else if subspecialties.count < 3 { subspecialties.append(sub) }
                                 } label: {
                                     Text(sub).font(.subheadline)
-                                        .foregroundColor(sel ? .black : Color(white: 0.7))
+                                        .foregroundColor(sel ? .white : Color.nmaSecondary)
                                         .padding(.horizontal, 14).padding(.vertical, 8)
-                                        .background(sel ? Color.white : Color(white: 0.12))
+                                        .background(sel ? Color.nmaPrimary : Color.nmaSubtle)
                                         .cornerRadius(20)
                                 }
                             }
                         }.padding(.horizontal, 24)
                     }
 
-                    Text("Board Certifications").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
+                    Text("Board Certifications").font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
                     HStack(spacing: 8) {
-                        TextField("Add certification", text: $newCert).font(.subheadline).padding(14)
-                            .background(Color(white: 0.1)).cornerRadius(12)
+                        TextField("Add certification", text: $newCert).font(.subheadline)
+                            .foregroundColor(.nmaPrimary).padding(14)
+                            .background(Color.nmaSurface).cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
                         Button {
                             let c = newCert.trimmingCharacters(in: .whitespaces)
                             if !c.isEmpty { boardCertifications.append(c); newCert = "" }
                         } label: {
-                            Image(systemName: "plus.circle.fill").foregroundColor(.white).font(.title3)
+                            Image(systemName: "plus.circle.fill").foregroundColor(Color.nmaPrimary).font(.title3)
                         }
                     }.padding(.horizontal, 24)
 
                     ForEach(boardCertifications, id: \.self) { cert in
                         HStack {
-                            Text(cert).font(.subheadline).foregroundColor(.white)
+                            Text(cert).font(.subheadline).foregroundColor(Color.nmaPrimary)
                             Spacer()
                             Button { boardCertifications.removeAll { $0 == cert } } label: {
-                                Image(systemName: "xmark").font(.caption).foregroundColor(Color(white: 0.4))
+                                Image(systemName: "xmark").font(.caption).foregroundColor(Color.nmaSecondary)
                             }
                         }.padding(.horizontal, 24)
                     }
@@ -260,14 +293,11 @@ struct EditSpecialtyView: View {
         }
         .navigationTitle("Specialty & Credentials")
         .navigationBarTitleDisplayMode(.inline)
-        .colorScheme(.dark)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    Task { await save() }
-                } label: {
-                    if isSaving { ProgressView().tint(.white) }
-                    else { Text("Done").fontWeight(.semibold) }
+                Button { Task { await save() } } label: {
+                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
+                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
                 }
                 .disabled(isSaving)
             }
@@ -285,17 +315,16 @@ struct EditSpecialtyView: View {
             "boardCertifications": boardCertifications
         ])
         try? await UserService.shared.fetchCurrentUser()
-        isSaving = false
-        dismiss()
+        isSaving = false; dismiss()
     }
 
     @ViewBuilder
     private func degreeChip(_ deg: DegreeType) -> some View {
         Button { degreeType = deg } label: {
             Text(deg.rawValue).font(.subheadline)
-                .foregroundColor(degreeType == deg ? .black : Color(white: 0.7))
+                .foregroundColor(degreeType == deg ? .white : Color.nmaSecondary)
                 .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(degreeType == deg ? Color.white : Color(white: 0.12))
+                .background(degreeType == deg ? Color.nmaPrimary : Color.nmaSubtle)
                 .cornerRadius(20)
         }
     }
@@ -312,33 +341,36 @@ struct EditPracticeView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Institution").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24).padding(.top, 16)
+                    Text("Institution").font(.caption).foregroundColor(Color.nmaSecondary)
+                        .padding(.horizontal, 24).padding(.top, 16)
                     TextField("Hospital or practice name", text: $institution).modifier(TextFieldModifier())
 
-                    Text("Practice Type").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
+                    Text("Practice Type").font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
                     VStack(spacing: 0) {
                         ForEach(PracticeType.allCases, id: \.self) { pt in
                             Button { practiceType = pt } label: {
                                 HStack {
-                                    Text(pt.rawValue).font(.subheadline).foregroundColor(.white)
+                                    Text(pt.rawValue).font(.subheadline).foregroundColor(Color.nmaPrimary)
                                     Spacer()
                                     if practiceType == pt {
-                                        Image(systemName: "checkmark").foregroundColor(.blue).font(.subheadline)
+                                        Image(systemName: "checkmark").foregroundColor(Color.nmaPrimary).font(.subheadline)
                                     }
                                 }
                                 .padding(.horizontal, 16).padding(.vertical, 14)
                             }
                             if pt != PracticeType.allCases.last {
-                                Divider().background(Color(white: 0.12))
+                                Divider().background(Color.nmaBorder)
                             }
                         }
                     }
-                    .background(Color(white: 0.08)).cornerRadius(12).padding(.horizontal, 24)
+                    .background(Color.nmaSurface).cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.nmaBorder, lineWidth: 0.5))
+                    .padding(.horizontal, 24)
 
-                    Text("Metro Area / Region").font(.caption).foregroundColor(Color(white: 0.4)).padding(.horizontal, 24)
+                    Text("Metro Area / Region").font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
                     TextField("e.g. New York, NY", text: $region).modifier(TextFieldModifier())
                 }
                 .padding(.bottom, 40)
@@ -346,14 +378,11 @@ struct EditPracticeView: View {
         }
         .navigationTitle("Practice & Institution")
         .navigationBarTitleDisplayMode(.inline)
-        .colorScheme(.dark)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    Task { await save() }
-                } label: {
-                    if isSaving { ProgressView().tint(.white) }
-                    else { Text("Done").fontWeight(.semibold) }
+                Button { Task { await save() } } label: {
+                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
+                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
                 }
                 .disabled(isSaving)
             }
@@ -370,8 +399,7 @@ struct EditPracticeView: View {
             "locationRegion": region
         ])
         try? await UserService.shared.fetchCurrentUser()
-        isSaving = false
-        dismiss()
+        isSaving = false; dismiss()
     }
 }
 
@@ -384,7 +412,7 @@ struct EditLicensesView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 10) {
                     ForEach(usStates, id: \.self) { state in
@@ -394,9 +422,9 @@ struct EditLicensesView: View {
                             else { selected.append(state) }
                         } label: {
                             Text(state).font(.caption).fontWeight(.medium)
-                                .foregroundColor(sel ? .black : Color(white: 0.6))
+                                .foregroundColor(sel ? .white : Color.nmaSecondary)
                                 .frame(maxWidth: .infinity).padding(.vertical, 8)
-                                .background(sel ? Color.white : Color(white: 0.1))
+                                .background(sel ? Color.nmaPrimary : Color.nmaSubtle)
                                 .cornerRadius(8)
                         }
                     }
@@ -406,14 +434,11 @@ struct EditLicensesView: View {
         }
         .navigationTitle("State Licenses")
         .navigationBarTitleDisplayMode(.inline)
-        .colorScheme(.dark)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    Task { await save() }
-                } label: {
-                    if isSaving { ProgressView().tint(.white) }
-                    else { Text("Done").fontWeight(.semibold) }
+                Button { Task { await save() } } label: {
+                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
+                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
                 }
                 .disabled(isSaving)
             }
@@ -424,12 +449,9 @@ struct EditLicensesView: View {
     private func save() async {
         isSaving = true
         guard let uid = Auth.auth().currentUser?.uid else { isSaving = false; return }
-        try? await Firestore.firestore().collection("users").document(uid).updateData([
-            "stateLicenses": selected
-        ])
+        try? await Firestore.firestore().collection("users").document(uid).updateData(["stateLicenses": selected])
         try? await UserService.shared.fetchCurrentUser()
-        isSaving = false
-        dismiss()
+        isSaving = false; dismiss()
     }
 }
 
@@ -442,29 +464,23 @@ struct EditLanguagesView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Languages Spoken")
-                        .font(.caption).foregroundColor(Color(white: 0.4))
+                    Text("Languages Spoken").font(.caption).foregroundColor(Color.nmaSecondary)
                         .padding(.horizontal, 24).padding(.top, 16)
-
-                    FlowTagGrid(items: spokenLanguages, selected: $selected)
-                        .padding(.horizontal, 24)
+                    FlowTagGrid(items: spokenLanguages, selected: $selected).padding(.horizontal, 24)
                 }
                 .padding(.bottom, 40)
             }
         }
         .navigationTitle("Languages")
         .navigationBarTitleDisplayMode(.inline)
-        .colorScheme(.dark)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    Task { await save() }
-                } label: {
-                    if isSaving { ProgressView().tint(.white) }
-                    else { Text("Done").fontWeight(.semibold) }
+                Button { Task { await save() } } label: {
+                    if isSaving { ProgressView().tint(Color.nmaPrimary) }
+                    else { Text("Done").fontWeight(.semibold).foregroundColor(Color.nmaPrimary) }
                 }
                 .disabled(isSaving)
             }
@@ -475,12 +491,9 @@ struct EditLanguagesView: View {
     private func save() async {
         isSaving = true
         guard let uid = Auth.auth().currentUser?.uid else { isSaving = false; return }
-        try? await Firestore.firestore().collection("users").document(uid).updateData([
-            "languagesSpoken": selected
-        ])
+        try? await Firestore.firestore().collection("users").document(uid).updateData(["languagesSpoken": selected])
         try? await UserService.shared.fetchCurrentUser()
-        isSaving = false
-        dismiss()
+        isSaving = false; dismiss()
     }
 }
 
@@ -497,9 +510,9 @@ private struct FlowTagGrid: View {
                     else { selected.append(item) }
                 } label: {
                     Text(item).font(.subheadline)
-                        .foregroundColor(sel ? .black : Color(white: 0.7))
+                        .foregroundColor(sel ? .white : Color.nmaSecondary)
                         .frame(maxWidth: .infinity).padding(.vertical, 10)
-                        .background(sel ? Color.white : Color(white: 0.12))
+                        .background(sel ? Color.nmaPrimary : Color.nmaSubtle)
                         .cornerRadius(10)
                 }
             }
@@ -514,20 +527,19 @@ struct ConfirmationView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.nmaBackground.ignoresSafeArea()
             VStack(spacing: 24) {
                 Spacer()
                 Text("Delete Account")
-                    .font(.title3).fontWeight(.semibold).foregroundColor(.white)
+                    .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
                 Text("This action is permanent and cannot be undone.")
-                    .font(.subheadline).foregroundColor(Color(white: 0.45))
+                    .font(.subheadline).foregroundColor(Color.nmaSecondary)
                     .multilineTextAlignment(.center).padding(.horizontal, 40)
                 Button(action: confirmAction) {
                     Text("Delete My Account")
                         .font(.subheadline).fontWeight(.semibold).foregroundColor(.white)
                         .frame(maxWidth: .infinity).frame(height: 50)
-                        .background(Color.red).cornerRadius(12)
-                        .padding(.horizontal, 24)
+                        .background(Color.red).cornerRadius(12).padding(.horizontal, 24)
                 }
                 Spacer()
             }
@@ -536,7 +548,5 @@ struct ConfirmationView: View {
 }
 
 struct Settings_Previews: PreviewProvider {
-    static var previews: some View {
-        Settings()
-    }
+    static var previews: some View { Settings() }
 }

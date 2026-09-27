@@ -60,7 +60,7 @@ struct ThreadView: View {
                         }
                         .padding(.vertical, 12)
                     }
-                    .onChange(of: viewModel.messages.count) {
+                    .onChange(of: viewModel.messages.count) { _ in
                         if let last = viewModel.messages.last?.id {
                             withAnimation { proxy.scrollTo(last, anchor: .bottom) }
                         }

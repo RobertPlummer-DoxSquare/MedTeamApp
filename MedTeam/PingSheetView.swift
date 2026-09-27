@@ -18,34 +18,31 @@ struct PingSheetView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.nmaBackground.ignoresSafeArea()
                 if viewModel.didSend {
                     sentConfirmationView
                 } else {
-                    pingSelectionView
+                    selectionView
                 }
             }
-            .navigationTitle("Ping \(viewModel.targetUser.fullname)")
+            .navigationTitle("Message \(viewModel.targetUser.fullname)")
             .navigationBarTitleDisplayMode(.inline)
-            .colorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Color(white: 0.5))
+                        .foregroundColor(Color.nmaSecondary)
                 }
             }
         }
     }
 
-    private var pingSelectionView: some View {
+    private var selectionView: some View {
         ScrollView {
             VStack(spacing: 12) {
                 Text("Available for:")
-                    .font(.subheadline)
-                    .foregroundColor(Color(white: 0.45))
+                    .font(.subheadline).foregroundColor(Color.nmaSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
+                    .padding(.horizontal, 20).padding(.top, 20)
 
                 ForEach(viewModel.availablePingTypes, id: \.self) { type in
                     PingTypeRow(type: type, isSelected: selectedType == type)
@@ -53,20 +50,21 @@ struct PingSheetView: View {
                         .padding(.horizontal, 16)
                 }
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Add a note (optional)")
-                        .font(.caption)
-                        .foregroundColor(Color(white: 0.45))
-                    TextEditor(text: $note)
-                        .frame(height: 80)
-                        .padding(10)
-                        .background(Color(white: 0.1))
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                        .scrollContentBackground(.hidden)
+                if selectedType != .referral {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Add a note (optional)")
+                            .font(.caption).foregroundColor(Color.nmaSecondary)
+                        TextEditor(text: $note)
+                            .frame(height: 80)
+                            .padding(10)
+                            .background(Color.nmaSurface)
+                            .cornerRadius(10)
+                            .foregroundColor(Color.nmaPrimary)
+                            .scrollContentBackground(.hidden)
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.nmaBorder, lineWidth: 0.5))
+                    }
+                    .padding(.horizontal, 16).padding(.top, 8)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
 
                 Button {
                     guard let type = selectedType else { return }
@@ -74,45 +72,53 @@ struct PingSheetView: View {
                 } label: {
                     Group {
                         if viewModel.isSending {
-                            ProgressView().tint(.black)
+                            ProgressView().tint(.white)
                         } else {
-                            Text("Send Ping").fontWeight(.semibold)
+                            Text(sendButtonTitle).fontWeight(.semibold)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(selectedType != nil ? Color.white : Color(white: 0.2))
-                    .foregroundColor(selectedType != nil ? .black : Color(white: 0.4))
+                    .frame(maxWidth: .infinity).frame(height: 50)
+                    .background(selectedType != nil ? Color.nmaPrimary : Color.nmaSubtle)
+                    .foregroundColor(selectedType != nil ? .white : Color.nmaSecondary)
                     .cornerRadius(12)
                 }
                 .disabled(selectedType == nil || viewModel.isSending)
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 40)
+                .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)
             }
         }
     }
 
+    private var sendButtonTitle: String {
+        switch selectedType {
+        case .referral:      return "Send Referral Notification"
+        case .mentorship:    return "Request Mentorship"
+        case .collaboration: return "Start Collaboration Thread"
+        case nil:            return "Send"
+        }
+    }
+
     private var sentConfirmationView: some View {
-        VStack(spacing: 16) {
+        let isThread = viewModel.sentType != .referral
+        let firstName = viewModel.targetUser.fullname.components(separatedBy: " ").first
+            ?? viewModel.targetUser.fullname
+        return VStack(spacing: 16) {
             Circle()
-                .fill(Color.green.opacity(0.15))
+                .fill(isThread ? Color.nmaPrimary.opacity(0.08) : Color.green.opacity(0.1))
                 .frame(width: 64, height: 64)
                 .overlay(
-                    Image(systemName: "checkmark")
+                    Image(systemName: isThread ? "message.fill" : "checkmark")
                         .font(.title2)
-                        .foregroundColor(.green)
+                        .foregroundColor(isThread ? Color.nmaPrimary : .green)
                 )
-            Text("Ping sent")
-                .font(.title3).fontWeight(.semibold).foregroundColor(.white)
-            Text("They'll be notified and can accept or decline from their pings inbox.")
-                .font(.subheadline)
-                .foregroundColor(Color(white: 0.45))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+            Text(isThread ? "Thread opened" : "Referral notification sent")
+                .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
+            Text(isThread
+                ? "Your conversation with Dr. \(firstName) is waiting in your Messages tab."
+                : "\(firstName) has been notified and will call your office to coordinate care.")
+                .font(.subheadline).foregroundColor(Color.nmaSecondary)
+                .multilineTextAlignment(.center).padding(.horizontal, 32)
             Button("Done") { dismiss() }
-                .foregroundColor(Color(white: 0.5))
-                .padding(.top, 8)
+                .foregroundColor(Color.nmaSecondary).padding(.top, 8)
         }
     }
 }
@@ -127,33 +133,29 @@ struct PingTypeRow: View {
         HStack(spacing: 14) {
             Image(systemName: type.iconSystemName)
                 .font(.system(size: 16))
-                .foregroundColor(type.color)
+                .foregroundColor(isSelected ? Color.nmaPrimary : Color.nmaSecondary)
                 .frame(width: 36, height: 36)
-                .background(type.color.opacity(0.12))
+                .background(isSelected ? Color.nmaPrimary.opacity(0.08) : Color.nmaSubtle)
                 .cornerRadius(8)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(type.displayName)
-                    .font(.subheadline).fontWeight(.medium).foregroundColor(.white)
+                    .font(.subheadline).fontWeight(.medium).foregroundColor(Color.nmaPrimary)
                 Text(type.description)
-                    .font(.caption).foregroundColor(Color(white: 0.45))
+                    .font(.caption).foregroundColor(Color.nmaSecondary)
             }
-
             Spacer()
-
             if isSelected {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(type.color)
+                    .foregroundColor(Color.nmaPrimary)
             }
         }
         .padding(14)
-        .background(
+        .background(Color.nmaSurface)
+        .cornerRadius(12)
+        .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? type.color.opacity(0.1) : Color(white: 0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? type.color.opacity(0.5) : Color.clear, lineWidth: 1)
-                )
+                .stroke(isSelected ? Color.nmaPrimary.opacity(0.3) : Color.nmaBorder, lineWidth: 0.5)
         )
     }
 }

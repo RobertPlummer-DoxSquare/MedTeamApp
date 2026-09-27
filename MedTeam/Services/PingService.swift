@@ -11,8 +11,9 @@ class PingService {
     static let shared = PingService()
     private let db = Firestore.firestore()
 
-    func sendPing(to toUserId: String, type: PingType, note: String?) async throws {
-        guard let fromUserId = Auth.auth().currentUser?.uid else { return }
+    @discardableResult
+    func sendPing(to toUserId: String, type: PingType, note: String?) async throws -> String {
+        guard let fromUserId = Auth.auth().currentUser?.uid else { return "" }
         let ping = Ping(
             fromUserId: fromUserId,
             toUserId: toUserId,
@@ -21,7 +22,8 @@ class PingService {
             status: .pending,
             createdAt: Date()
         )
-        try db.collection("pings").addDocument(from: ping)
+        let ref = try db.collection("pings").addDocument(from: ping)
+        return ref.documentID
     }
 
     func fetchReceivedPings(completion: @escaping ([Ping]) -> Void) -> ListenerRegistration {

@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AC2FE8D72FAAB48600D12943 /* NMARegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8D62FAAB48600D12943 /* NMARegion.swift */; };
+		AC2FE8D92FAAB4A700D12943 /* NMATheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8D82FAAB4A700D12943 /* NMATheme.swift */; };
+		AC2FE8DC2FAAB51100D12943 /* MemberDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8DB2FAAB51100D12943 /* MemberDirectoryView.swift */; };
+		AC2FE8DE2FAAB52D00D12943 /* MemberDirectoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8DD2FAAB52D00D12943 /* MemberDirectoryViewModel.swift */; };
+		AC2FE8E02FAB0D0F00D12943 /* NMAMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2FE8DF2FAB0D0F00D12943 /* NMAMapView.swift */; };
 		AC4A45422C37043D00981F77 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4A45412C37043D00981F77 /* Settings.swift */; };
 		AC50FDBF2C2B214F007EB55B /* UserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC50FDBE2C2B214F007EB55B /* UserService.swift */; };
 		AC50FDC12C2B21C9007EB55B /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC50FDC02C2B21C9007EB55B /* User.swift */; };
@@ -70,9 +75,6 @@
 		BB01PING2C37043D00981F06 /* PingInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F06 /* PingInboxView.swift */; };
 		BB01PING2C37043D00981F07 /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F07 /* UserProfileView.swift */; };
 		BB01PING2C37043D00981F08 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB01PING1C37043D00981F08 /* Date+Extensions.swift */; };
-		BB1A45422C37043D00981F01 /* NPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1A45412C37043D00981F01 /* NPIService.swift */; };
-		BB3A45422C37043D00981F02 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3A45412C37043D00981F02 /* OnboardingViewModel.swift */; };
-		BB5A45422C37043D00981F03 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5A45412C37043D00981F03 /* OnboardingView.swift */; };
 		BB0MSG2C37043D00981F01 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F01 /* Conversation.swift */; };
 		BB0MSG2C37043D00981F02 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F02 /* Message.swift */; };
 		BB0MSG2C37043D00981F03 /* Notification+Names.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F03 /* Notification+Names.swift */; };
@@ -85,9 +87,18 @@
 		BB0MSG2C37043D00981F0A /* ReferralCardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */; };
 		BB0MSG2C37043D00981F0B /* ProposalCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0B /* ProposalCardView.swift */; };
 		BB0MSG2C37043D00981F0C /* ProposalCardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */; };
+		BB0MSG4C37043D00981F03 /* RegionMapHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0MSG3C37043D00981F03 /* RegionMapHeaderView.swift */; };
+		BB1A45422C37043D00981F01 /* NPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1A45412C37043D00981F01 /* NPIService.swift */; };
+		BB3A45422C37043D00981F02 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3A45412C37043D00981F02 /* OnboardingViewModel.swift */; };
+		BB5A45422C37043D00981F03 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5A45412C37043D00981F03 /* OnboardingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AC2FE8D62FAAB48600D12943 /* NMARegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NMARegion.swift; sourceTree = "<group>"; };
+		AC2FE8D82FAAB4A700D12943 /* NMATheme.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NMATheme.swift; sourceTree = "<group>"; };
+		AC2FE8DB2FAAB51100D12943 /* MemberDirectoryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemberDirectoryView.swift; path = MedTeam/Directory/MemberDirectoryView.swift; sourceTree = SOURCE_ROOT; };
+		AC2FE8DD2FAAB52D00D12943 /* MemberDirectoryViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemberDirectoryViewModel.swift; path = MedTeam/Directory/MemberDirectoryViewModel.swift; sourceTree = SOURCE_ROOT; };
+		AC2FE8DF2FAB0D0F00D12943 /* NMAMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NMAMapView.swift; path = MedTeam/Directory/NMAMapView.swift; sourceTree = SOURCE_ROOT; };
 		AC4A45412C37043D00981F77 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		AC50FDBE2C2B214F007EB55B /* UserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserService.swift; sourceTree = "<group>"; };
 		AC50FDC02C2B21C9007EB55B /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -124,9 +135,6 @@
 		BB01PING1C37043D00981F06 /* PingInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingInboxView.swift; sourceTree = "<group>"; };
 		BB01PING1C37043D00981F07 /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
 		BB01PING1C37043D00981F08 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
-		BB1A45412C37043D00981F01 /* NPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NPIService.swift; sourceTree = "<group>"; };
-		BB3A45412C37043D00981F02 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
-		BB5A45412C37043D00981F03 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F01 /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F02 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F03 /* Notification+Names.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification+Names.swift"; sourceTree = "<group>"; };
@@ -139,6 +147,11 @@
 		BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralCardFormView.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F0B /* ProposalCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalCardView.swift; sourceTree = "<group>"; };
 		BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposalCardFormView.swift; sourceTree = "<group>"; };
+		BB0MSG3C37043D00981F03 /* RegionMapHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RegionMapHeaderView.swift; path = MedTeam/Directory/RegionMapHeaderView.swift; sourceTree = SOURCE_ROOT; };
+		BB1A45412C37043D00981F01 /* NPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NPIService.swift; sourceTree = "<group>"; };
+		BB3A45412C37043D00981F02 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		BB5A45412C37043D00981F03 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		BBNMAIP001FAB0D0F00D12943 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -180,6 +193,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AC2FE8DA2FAAB4C500D12943 /* Directory  */ = {
+			isa = PBXGroup;
+			children = (
+				AC2FE8DD2FAAB52D00D12943 /* MemberDirectoryViewModel.swift */,
+				AC2FE8DB2FAAB51100D12943 /* MemberDirectoryView.swift */,
+				BB0MSG3C37043D00981F03 /* RegionMapHeaderView.swift */,
+				AC2FE8DF2FAB0D0F00D12943 /* NMAMapView.swift */,
+			);
+			path = "Directory ";
+			sourceTree = "<group>";
+		};
 		AC50FDC22C2B9FB0007EB55B /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -231,6 +255,7 @@
 		AC9F40C52C2A081800E52D4E /* MedTeam */ = {
 			isa = PBXGroup;
 			children = (
+				AC2FE8DA2FAAB4C500D12943 /* Directory  */,
 				AC9F40D92C2A140A00E52D4E /* App */,
 				AC9F40D82C2A13E500E52D4E /* Core */,
 				AC9F40D72C2A13E100E52D4E /* Extensions */,
@@ -271,6 +296,7 @@
 				BB01PING1C37043D00981F01 /* Ping.swift */,
 				BB0MSG1C37043D00981F01 /* Conversation.swift */,
 				BB0MSG1C37043D00981F02 /* Message.swift */,
+				AC2FE8D62FAAB48600D12943 /* NMARegion.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -301,24 +327,10 @@
 			name = Core;
 			sourceTree = "<group>";
 		};
-		BB0MSG3C37043D00981F01 /* Messaging */ = {
-			isa = PBXGroup;
-			children = (
-				BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */,
-				BB0MSG1C37043D00981F06 /* ConversationListView.swift */,
-				BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */,
-				BB0MSG1C37043D00981F08 /* ThreadView.swift */,
-				BB0MSG1C37043D00981F09 /* ReferralCardView.swift */,
-				BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */,
-				BB0MSG1C37043D00981F0B /* ProposalCardView.swift */,
-				BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */,
-			);
-			path = Messaging;
-			sourceTree = "<group>";
-		};
 		AC9F40D92C2A140A00E52D4E /* App */ = {
 			isa = PBXGroup;
 			children = (
+				BBNMAIP001FAB0D0F00D12943 /* Info.plist */,
 				AC9F40C62C2A081800E52D4E /* MedTeamApp.swift */,
 				AC5203392C312CCA00BDBA5E /* AppState.swift */,
 			);
@@ -373,6 +385,7 @@
 		AC9F40E92C2A18F400E52D4E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				AC2FE8D82FAAB4A700D12943 /* NMATheme.swift */,
 				AC9F40FE2C2A5CEC00E52D4E /* GoogleService-Info.plist */,
 				AC9F40EB2C2A193C00E52D4E /* ViewModifiers */,
 			);
@@ -426,6 +439,21 @@
 				AC4A45412C37043D00981F77 /* Settings.swift */,
 			);
 			name = "Profile ";
+			sourceTree = "<group>";
+		};
+		BB0MSG3C37043D00981F01 /* Messaging */ = {
+			isa = PBXGroup;
+			children = (
+				BB0MSG1C37043D00981F05 /* ConversationListViewModel.swift */,
+				BB0MSG1C37043D00981F06 /* ConversationListView.swift */,
+				BB0MSG1C37043D00981F07 /* ThreadViewModel.swift */,
+				BB0MSG1C37043D00981F08 /* ThreadView.swift */,
+				BB0MSG1C37043D00981F09 /* ReferralCardView.swift */,
+				BB0MSG1C37043D00981F0A /* ReferralCardFormView.swift */,
+				BB0MSG1C37043D00981F0B /* ProposalCardView.swift */,
+				BB0MSG1C37043D00981F0C /* ProposalCardFormView.swift */,
+			);
+			path = Messaging;
 			sourceTree = "<group>";
 		};
 		BB9F40D52C2A13DC00E52D401 /* Onboarding */ = {
@@ -559,14 +587,17 @@
 				AC50FDC12C2B21C9007EB55B /* User.swift in Sources */,
 				AC9F40C72C2A081800E52D4E /* MedTeamApp.swift in Sources */,
 				AC9F40E32C2A16A500E52D4E /* LoginViewModel.swift in Sources */,
+				AC2FE8D72FAAB48600D12943 /* NMARegion.swift in Sources */,
 				AC9F40F72C2A4CF800E52D4E /* CurrentUserProfileViewModel.swift in Sources */,
 				AC9F40E12C2A168A00E52D4E /* RegistrationView.swift in Sources */,
 				AC9F40FA2C2A4D6C00E52D4E /* ExploreView.swift in Sources */,
 				AC50FDCB2C2D098C007EB55B /* ExploreViewModel.swift in Sources */,
 				BB1A45422C37043D00981F01 /* NPIService.swift in Sources */,
 				BB3A45422C37043D00981F02 /* OnboardingViewModel.swift in Sources */,
+				AC2FE8E02FAB0D0F00D12943 /* NMAMapView.swift in Sources */,
 				BB5A45422C37043D00981F03 /* OnboardingView.swift in Sources */,
 				AC4A45422C37043D00981F77 /* Settings.swift in Sources */,
+				AC2FE8DE2FAAB52D00D12943 /* MemberDirectoryViewModel.swift in Sources */,
 				AC9F40E82C2A175900E52D4E /* AuthService.swift in Sources */,
 				BB01PING2C37043D00981F01 /* Ping.swift in Sources */,
 				BB01PING2C37043D00981F02 /* PingService.swift in Sources */,
@@ -580,7 +611,9 @@
 				BB0MSG2C37043D00981F02 /* Message.swift in Sources */,
 				BB0MSG2C37043D00981F03 /* Notification+Names.swift in Sources */,
 				BB0MSG2C37043D00981F04 /* MessagingService.swift in Sources */,
+				AC2FE8DC2FAAB51100D12943 /* MemberDirectoryView.swift in Sources */,
 				BB0MSG2C37043D00981F05 /* ConversationListViewModel.swift in Sources */,
+				AC2FE8D92FAAB4A700D12943 /* NMATheme.swift in Sources */,
 				BB0MSG2C37043D00981F06 /* ConversationListView.swift in Sources */,
 				BB0MSG2C37043D00981F07 /* ThreadViewModel.swift in Sources */,
 				BB0MSG2C37043D00981F08 /* ThreadView.swift in Sources */,
@@ -588,6 +621,7 @@
 				BB0MSG2C37043D00981F0A /* ReferralCardFormView.swift in Sources */,
 				BB0MSG2C37043D00981F0B /* ProposalCardView.swift in Sources */,
 				BB0MSG2C37043D00981F0C /* ProposalCardFormView.swift in Sources */,
+				BB0MSG4C37043D00981F03 /* RegionMapHeaderView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -723,13 +757,9 @@
 				DEVELOPMENT_ASSET_PATHS = "\"MedTeam/Preview Content\"";
 				DEVELOPMENT_TEAM = 973YVKLG32;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MedTeam/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -753,13 +783,9 @@
 				DEVELOPMENT_ASSET_PATHS = "\"MedTeam/Preview Content\"";
 				DEVELOPMENT_TEAM = 973YVKLG32;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MedTeam/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

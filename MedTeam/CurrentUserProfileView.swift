@@ -2,8 +2,6 @@
 //  CurrentUserProfileView.swift
 //  MedTeam
 //
-//  Created by Robert Plummer on 6/24/24.
-//
 
 import SwiftUI
 
@@ -14,7 +12,7 @@ struct CurrentUserProfileView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.nmaBackground.ignoresSafeArea()
                 ScrollView(showsIndicators: false) {
                     if let user = viewModel.currentUser {
                         VStack(spacing: 0) {
@@ -22,12 +20,11 @@ struct CurrentUserProfileView: View {
                             profileBody(user: user)
                         }
                     } else {
-                        ProgressView().tint(.white).padding(.top, 60)
+                        ProgressView().tint(Color.nmaPrimary).padding(.top, 60)
                     }
                 }
             }
             .navigationBarHidden(true)
-            .colorScheme(.dark)
             .sheet(isPresented: $isShowingSettings) { Settings() }
         }
     }
@@ -41,67 +38,68 @@ struct CurrentUserProfileView: View {
                 Spacer()
                 Button { isShowingSettings = true } label: {
                     Image(systemName: "gearshape")
-                        .font(.title3).foregroundColor(Color(white: 0.5))
+                        .font(.title3).foregroundColor(Color.nmaSecondary)
                 }
             }
             .padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 8)
 
-            // Avatar
             Circle()
-                .fill(Color(white: 0.15))
+                .fill(Color.nmaSubtle)
                 .frame(width: 80, height: 80)
                 .overlay(
                     Text(initials(for: user.fullname))
-                        .font(.title3).fontWeight(.semibold).foregroundColor(.white)
+                        .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaSecondary)
                 )
 
-            // Name + username
             VStack(spacing: 4) {
                 HStack(spacing: 6) {
                     Text(user.fullname)
-                        .font(.title3).fontWeight(.semibold).foregroundColor(.white)
+                        .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
                     if user.npiVerified {
                         Image(systemName: "checkmark.seal.fill")
                             .foregroundColor(.blue).font(.subheadline)
                     }
                 }
                 Text("@\(user.username)")
-                    .font(.subheadline).foregroundColor(Color(white: 0.45))
+                    .font(.subheadline).foregroundColor(Color.nmaSecondary)
             }
 
-            // Specialty + Practice chips
             HStack(spacing: 8) {
-                if let specialty = user.specialty {
-                    infoChip(specialty, color: .blue)
-                }
-                if let pt = user.practiceType {
-                    infoChip(pt.rawValue, color: Color(white: 0.25))
-                }
+                if let specialty = user.specialty { infoChip(specialty) }
+                if let pt = user.practiceType { infoChip(pt.rawValue) }
             }
 
-            // Institution
             if let institution = user.currentInstitution, !institution.isEmpty {
-                Text(institution)
-                    .font(.subheadline).foregroundColor(Color(white: 0.5))
+                Text(institution).font(.subheadline).foregroundColor(Color.nmaSecondary)
             }
 
-            // State licenses
+            // Region badge
+            if let region = user.nmaRegion {
+                HStack(spacing: 6) {
+                    regionBadge(region)
+                    if user.isChairperson { chairBadge }
+                }
+            }
+
             if !user.stateLicenses.isEmpty {
                 Text(user.stateLicenses.joined(separator: " · "))
-                    .font(.caption).foregroundColor(Color(white: 0.4))
+                    .font(.caption).foregroundColor(Color.nmaSecondary.opacity(0.7))
             }
 
-            // Networking badges
-            if user.isAcceptingReferrals || user.isOpenToCollaboration || user.isMentor {
+            // Availability badges
+            if user.isOpenToReferrals || user.isOpenToCollaboration || user.isMentor {
                 HStack(spacing: 8) {
-                    if user.isAcceptingReferrals {
-                        badgeView("Referrals", icon: "arrow.left.arrow.right.circle")
+                    if user.isOpenToReferrals {
+                        availBadge("Referrals: Call my office", icon: "phone.circle",
+                                   fg: Color(hex: "155724"), bg: Color(hex: "D4EDDA"))
                     }
                     if user.isOpenToCollaboration {
-                        badgeView("Collab", icon: "flask")
+                        availBadge("Research", icon: "flask",
+                                   fg: Color(hex: "3C2D8A"), bg: Color(hex: "E8E0FF"))
                     }
                     if user.isMentor {
-                        badgeView("Mentor", icon: "graduationcap")
+                        availBadge("Mentor", icon: "graduationcap",
+                                   fg: Color.nmaSecondary, bg: Color.nmaSubtle)
                     }
                 }
                 .padding(.top, 4)
@@ -117,37 +115,46 @@ struct CurrentUserProfileView: View {
         VStack(spacing: 0) {
             separator
 
-            // Training
+            if let region = user.nmaRegion {
+                profileSection(title: "NMA Region") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) {
+                            regionBadge(region)
+                            if user.isChairperson { chairBadge }
+                        }
+                        .padding(.horizontal, 24)
+                        Text("Chair: \(region.chairName)")
+                            .font(.caption).foregroundColor(Color.nmaSecondary).padding(.horizontal, 24)
+                        if region.nextMeeting != "TBD" {
+                            Text("Next meeting: \(region.nextMeeting)")
+                                .font(.caption).foregroundColor(Color.nmaSecondary.opacity(0.7))
+                                .padding(.horizontal, 24)
+                        }
+                    }
+                    .padding(.bottom, 4)
+                }
+                separator
+            }
+
             if user.medicalSchool != nil || user.residencyProgram != nil {
                 profileSection(title: "Training") {
                     if let school = user.medicalSchool {
-                        trainingRow(
-                            title: school,
-                            detail: user.medicalSchoolGradYear.map { "Class of \($0)" }
-                        )
+                        trainingRow(title: school, detail: user.medicalSchoolGradYear.map { "Class of \($0)" })
                     }
                     if let res = user.residencyProgram {
-                        trainingRow(
-                            title: res,
-                            detail: user.residencyCompletionYear.map { "Residency · \($0)" }
-                        )
+                        trainingRow(title: res, detail: user.residencyCompletionYear.map { "Residency · \($0)" })
                     }
                     if let fel = user.fellowshipProgram {
-                        trainingRow(
-                            title: fel,
-                            detail: user.fellowshipCompletionYear.map { "Fellowship · \($0)" }
-                        )
+                        trainingRow(title: fel, detail: user.fellowshipCompletionYear.map { "Fellowship · \($0)" })
                     }
                 }
                 separator
             }
 
-            // Board Certifications
             if !user.boardCertifications.isEmpty {
                 profileSection(title: "Board Certifications") {
                     ForEach(user.boardCertifications, id: \.self) { cert in
-                        Text(cert)
-                            .font(.subheadline).foregroundColor(.white)
+                        Text(cert).font(.subheadline).foregroundColor(Color.nmaPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 24).padding(.vertical, 4)
                     }
@@ -155,30 +162,27 @@ struct CurrentUserProfileView: View {
                 separator
             }
 
-            // Languages
             if !user.languagesSpoken.isEmpty {
                 profileSection(title: "Languages") {
                     Text(user.languagesSpoken.joined(separator: " · "))
-                        .font(.subheadline).foregroundColor(Color(white: 0.6))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 24)
+                        .font(.subheadline).foregroundColor(Color.nmaSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 24)
                 }
                 separator
             }
 
-            // Profile completion
             profileSection(title: "Profile Completion") {
                 VStack(alignment: .leading, spacing: 8) {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            Capsule().fill(Color(white: 0.12)).frame(height: 6)
-                            Capsule().fill(Color.blue)
+                            Capsule().fill(Color.nmaBorder).frame(height: 6)
+                            Capsule().fill(Color.nmaPrimary)
                                 .frame(width: geo.size.width * CGFloat(user.profileCompletionPercent) / 100, height: 6)
                         }
                     }
                     .frame(height: 6)
                     Text("\(user.profileCompletionPercent)% complete")
-                        .font(.caption).foregroundColor(Color(white: 0.4))
+                        .font(.caption).foregroundColor(Color.nmaSecondary)
                 }
                 .padding(.horizontal, 24)
             }
@@ -189,51 +193,60 @@ struct CurrentUserProfileView: View {
     // MARK: - Sub-components
 
     private var separator: some View {
-        Divider().background(Color(white: 0.12)).padding(.horizontal, 24)
+        Divider().background(Color.nmaBorder).padding(.horizontal, 24)
     }
 
     @ViewBuilder
     private func profileSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.caption).fontWeight(.semibold)
-                .foregroundColor(Color(white: 0.4))
+            Text(title).font(.caption).fontWeight(.semibold)
+                .foregroundColor(Color.nmaSecondary)
                 .padding(.horizontal, 24).padding(.top, 20)
-            content()
-                .padding(.bottom, 16)
+            content().padding(.bottom, 16)
         }
     }
 
     @ViewBuilder
     private func trainingRow(title: String, detail: String?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.subheadline).foregroundColor(.white)
-            if let detail {
-                Text(detail).font(.caption).foregroundColor(Color(white: 0.45))
-            }
+            Text(title).font(.subheadline).foregroundColor(Color.nmaPrimary)
+            if let detail { Text(detail).font(.caption).foregroundColor(Color.nmaSecondary) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24).padding(.vertical, 2)
     }
 
     @ViewBuilder
-    private func infoChip(_ label: String, color: Color) -> some View {
-        Text(label)
-            .font(.caption).fontWeight(.medium)
-            .foregroundColor(.white)
+    private func infoChip(_ label: String) -> some View {
+        Text(label).font(.caption).fontWeight(.medium)
+            .foregroundColor(Color.nmaSecondary)
             .padding(.horizontal, 10).padding(.vertical, 5)
-            .background(color.opacity(0.3))
-            .cornerRadius(8)
+            .background(Color.nmaSubtle).cornerRadius(8)
     }
 
     @ViewBuilder
-    private func badgeView(_ label: String, icon: String) -> some View {
-        Label(label, systemImage: icon)
+    private func regionBadge(_ region: NMARegion) -> some View {
+        Text(region.displayName)
             .font(.caption).fontWeight(.medium)
-            .foregroundColor(Color(white: 0.7))
-            .padding(.horizontal, 10).padding(.vertical, 5)
-            .background(Color(white: 0.1))
-            .cornerRadius(8)
+            .foregroundColor(region.badgeForeground)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(region.badgeBackground).cornerRadius(6)
+    }
+
+    private var chairBadge: some View {
+        Label("Chairperson", systemImage: "star.fill")
+            .font(.caption).fontWeight(.medium)
+            .foregroundColor(Color(hex: "7A5C00"))
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(Color(hex: "FFF3CD")).cornerRadius(6)
+    }
+
+    @ViewBuilder
+    private func availBadge(_ label: String, icon: String, fg: Color, bg: Color) -> some View {
+        Label(label, systemImage: icon)
+            .font(.caption).fontWeight(.medium).foregroundColor(fg)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(bg).cornerRadius(6)
     }
 
     private func initials(for name: String) -> String {
@@ -242,7 +255,5 @@ struct CurrentUserProfileView: View {
 }
 
 struct CurrentUserProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        CurrentUserProfileView()
-    }
+    static var previews: some View { CurrentUserProfileView() }
 }

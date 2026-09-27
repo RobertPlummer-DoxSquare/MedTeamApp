@@ -98,7 +98,7 @@ struct ExploreView: View {
             users = users.filter { $0.stateLicenses.contains(state) }
         }
         if filters.acceptingReferrals {
-            users = users.filter { $0.isAcceptingReferrals }
+            users = users.filter { $0.isOpenToReferrals }
         }
         if filters.availableMentor {
             users = users.filter { $0.isMentor }
@@ -137,9 +137,9 @@ struct UserProfileRow: View {
                     Text(institution)
                         .font(.caption).foregroundColor(Color(white: 0.4))
                 }
-                if user.isAcceptingReferrals || user.isMentor {
+                if user.isOpenToReferrals || user.isMentor {
                     HStack(spacing: 6) {
-                        if user.isAcceptingReferrals {
+                        if user.isOpenToReferrals {
                             Text("Referrals").font(.caption2).foregroundColor(.blue)
                                 .padding(.horizontal, 6).padding(.vertical, 2)
                                 .background(Color.blue.opacity(0.15)).cornerRadius(4)

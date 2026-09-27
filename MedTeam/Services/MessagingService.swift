@@ -39,6 +39,36 @@ class MessagingService {
         return ref.documentID
     }
 
+    func createConversationForPing(
+        pingId: String,
+        fromUserId: String,
+        toUserId: String,
+        type: PingType,
+        fromUserName: String,
+        toUserName: String
+    ) async throws {
+        let ref = db.collection("conversations").document()
+        let data: [String: Any] = [
+            "pingId": pingId,
+            "type": type.rawValue,
+            "participantIds": [fromUserId, toUserId],
+            "status": ConversationStatus.active.rawValue,
+            "createdAt": Timestamp(date: Date()),
+            "lastMessage": "\(type.displayName) thread opened",
+            "lastMessageAt": Timestamp(date: Date()),
+            "participantNames": [fromUserId: fromUserName, toUserId: toUserName]
+        ]
+        try await ref.setData(data)
+        let systemMsg: [String: Any] = [
+            "senderId": "system",
+            "text": "\(type.displayName) thread opened",
+            "type": Message.MessageType.system.rawValue,
+            "createdAt": Timestamp(date: Date()),
+            "readBy": [toUserId]
+        ]
+        try await ref.collection("messages").addDocument(data: systemMsg)
+    }
+
     func fetchConversations(completion: @escaping ([Conversation]) -> Void) -> ListenerRegistration {
         guard let uid = Auth.auth().currentUser?.uid else {
             completion([])

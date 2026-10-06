@@ -18,7 +18,9 @@ struct ContentView: View {
 
             if authService.userSession != nil {
                 if let user = userService.currentUser {
-                    if !user.onboardingCompleted {
+                    if user.termsAcceptedAt == nil {
+                        TermsAgreementView()
+                    } else if !user.onboardingCompleted {
                         OnboardingView()
                     } else {
                         MainTabView()

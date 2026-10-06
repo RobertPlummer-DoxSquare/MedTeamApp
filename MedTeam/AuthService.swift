@@ -194,7 +194,9 @@ class AuthService: ObservableObject {
     
     @MainActor
     private func uploadUserData(withEmail email: String, fullname: String, username: String, credentials: String, id: String) async throws {
-        let user = User(id: id, email: email, fullname: fullname, username: username, credentials: credentials)
+        var user = User(id: id, email: email, fullname: fullname, username: username, credentials: credentials)
+        // Sign-up requires agreeing to the Terms of Use.
+        user.termsAcceptedAt = Date()
         do {
             let userData = try Firestore.Encoder().encode(user)
             try await Firestore.firestore().collection("users").document(id).setData(userData)

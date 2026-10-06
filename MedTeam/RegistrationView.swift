@@ -49,6 +49,10 @@ struct RegistrationView: View {
                             .modifier(TextFieldModifier())
                     }
 
+                    TermsCheckbox(isOn: $viewModel.agreedToTerms)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+
                     if let error = viewModel.errorMessage {
                         Text(error)
                             .font(.footnote)

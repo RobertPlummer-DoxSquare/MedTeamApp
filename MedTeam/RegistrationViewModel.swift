@@ -17,6 +17,7 @@ class RegistrationViewModel: ObservableObject {
     @Published var fullname = ""
     @Published var username = ""
     @Published var credentials = ""
+    @Published var agreedToTerms = false
     
     @Published var errorMessage: String?
     @Published var isLoading = false
@@ -31,6 +32,11 @@ class RegistrationViewModel: ObservableObject {
         }
         guard name.split(separator: " ").count >= 2 else {
             errorMessage = "Please enter your first and last name."
+            return
+        }
+
+        guard agreedToTerms else {
+            errorMessage = "Please agree to the Terms of Use to continue."
             return
         }
 

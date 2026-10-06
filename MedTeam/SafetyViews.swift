@@ -4,9 +4,111 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 enum AppLinks {
     static let privacyPolicy = URL(string: "https://robertplummer-doxsquare.github.io/MedTeamApp/privacy.html")!
+    static let termsOfUse = URL(string: "https://robertplummer-doxsquare.github.io/MedTeamApp/terms.html")!
+}
+
+// MARK: - Terms of Use
+
+private let termsAgreementText: AttributedString = {
+    let md = "I agree to the [Terms of Use](\(AppLinks.termsOfUse.absoluteString)) and [Privacy Policy](\(AppLinks.privacyPolicy.absoluteString)). There is no tolerance for abusive or objectionable content or behavior."
+    return (try? AttributedString(markdown: md)) ?? AttributedString(md)
+}()
+
+/// "I agree" checkbox with links to the Terms and Privacy Policy.
+struct TermsCheckbox: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Button { isOn.toggle() } label: {
+                Image(systemName: isOn ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 22))
+                    .foregroundColor(isOn ? .nmaPrimary : .nmaSecondary)
+            }
+            .accessibilityLabel("Agree to the Terms of Use")
+            .accessibilityValue(isOn ? "Checked" : "Unchecked")
+            Text(termsAgreementText)
+                .font(.footnote)
+                .foregroundColor(.nmaSecondary)
+                .tint(.nmaPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+/// Shown once to accounts created before the Terms of Use existed.
+struct TermsAgreementView: View {
+    @State private var agreed = false
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Image(systemName: "checkmark.shield")
+                    .font(.system(size: 40))
+                    .foregroundColor(.nmaPrimary)
+                    .padding(.top, 48)
+                Text("Community Terms")
+                    .font(.title2).fontWeight(.semibold).foregroundColor(.nmaPrimary)
+                Text("MedTeam is a professional community. To keep it safe:")
+                    .foregroundColor(.nmaSecondary)
+                VStack(alignment: .leading, spacing: 10) {
+                    rule("No harassment, hate, threats, or sexual content.")
+                    rule("No spam, scams, or fake profiles.")
+                    rule("Never share patient information.")
+                    rule("Report or block anyone who breaks these rules. We review reports within 24 hours and remove offending content and members.")
+                }
+                TermsCheckbox(isOn: $agreed).padding(.top, 8)
+                if let errorMessage {
+                    Text(errorMessage).font(.footnote).foregroundColor(.red)
+                }
+                Button { accept() } label: {
+                    Group {
+                        if isSaving { ProgressView().tint(.white) } else { Text("Continue").fontWeight(.semibold) }
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity).frame(height: 50)
+                    .background(agreed ? Color.nmaPrimary : Color.nmaBorder)
+                    .cornerRadius(12)
+                }
+                .disabled(!agreed || isSaving)
+                Button("Log Out") { AuthService.shared.signOut() }
+                    .font(.footnote)
+                    .foregroundColor(.nmaSecondary)
+                    .frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, 24)
+        }
+        .background(Color.nmaBackground)
+    }
+
+    private func rule(_ text: String) -> some View {
+        Label {
+            Text(text).foregroundColor(.nmaPrimary).fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: "checkmark.circle.fill").foregroundColor(.nmaPrimary)
+        }
+        .font(.subheadline)
+    }
+
+    private func accept() {
+        isSaving = true
+        errorMessage = nil
+        Task {
+            do {
+                try await UserService.shared.updateFields(["termsAcceptedAt": Timestamp(date: Date())])
+            } catch {
+                errorMessage = "Couldn't save. Check your connection and try again."
+            }
+            isSaving = false
+        }
+    }
 }
 
 // MARK: - Report / Block Menu

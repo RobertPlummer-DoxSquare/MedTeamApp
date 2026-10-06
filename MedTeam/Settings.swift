@@ -126,6 +126,13 @@ struct Settings: View {
 
                 Section("Privacy & Safety") {
                     NavigationLink("Blocked Members") { BlockedMembersView() }
+                    Link(destination: AppLinks.termsOfUse) {
+                        HStack {
+                            Text("Terms of Use").foregroundColor(.nmaPrimary)
+                            Spacer()
+                            Image(systemName: "arrow.up.right.square").foregroundColor(.nmaSecondary)
+                        }
+                    }
                     Link(destination: AppLinks.privacyPolicy) {
                         HStack {
                             Text("Privacy Policy").foregroundColor(.nmaPrimary)

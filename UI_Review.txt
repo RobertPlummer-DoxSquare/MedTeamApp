@@ -1,0 +1,182 @@
+MEDTEAM APP - UI DESIGN & USABILITY REVIEW
+Date: 2026-09-27
+Scope: every reachable screen - Login, Sign Up, Onboarding, the four tabs
+(Directory, Notifications, Messages, Profile), message threads, both profile
+views, and Settings.
+
+
+======================================================================
+1. BROKEN OR MISLEADING - FIX FIRST
+======================================================================
+
+1.1  Delete Account deletes nothing
+     Where: Settings.swift:141
+     The button shows "Account Deleted", but no data or login is removed.
+     This tells users something false, and Apple's App Store requires real
+     account deletion.
+
+1.2  NPI "Verified" badge can be faked
+     Where: Settings.swift (NPIVerificationView), OnboardingViewModel.swift:93
+     Verification only checks that the NPI number exists in the registry,
+     not that it belongs to this person. The blue checkmark is the app's
+     main trust signal. At minimum, compare the registry's name to the
+     account name.
+
+1.3  The Notifications badge never goes down
+     Where: PingService.markRead is never called
+     The badge counts unread pending pings, but nothing ever marks one as
+     read, so the number can only grow.
+
+1.4  Invisible text on Login and Sign Up
+     Where: Utils/ViewModifiers/TextFieldModifier.swift, combined with forced
+     dark mode on those screens
+     Placeholders and typed text are light on a white field.
+
+1.5  Sign-up errors are silent
+     Where: RegistrationView.swift:59
+     Failures are only printed to the Xcode console. On screen, the button
+     just seems to do nothing.
+
+1.6  "Forgot password?" does nothing
+     Where: LoginView.swift:47
+     The button has an empty action. Firebase has
+     sendPasswordReset(withEmail:) built in.
+
+1.7  No loading feedback on Log In or Sign Up
+     People tap twice or think the app froze.
+
+
+======================================================================
+2. THE APP MIXES TWO VISUAL THEMES
+======================================================================
+
+2.1  NMATheme (Utils/NMATheme.swift) defines a LIGHT palette, and the four
+     main tabs use it. But Login, Sign Up, message threads (ThreadView.swift)
+     and ContentView are hard-coded BLACK with forced dark mode. The user goes
+     from a black login to a light directory, then into a black chat.
+     Recommendation: pick one look (probably the light NMA palette) and route
+     every color through NMATheme.
+
+2.2  MainTabView pairs a white tab bar with a dark gray navigation bar.
+
+2.3  About 25 hard-coded hex colors are scattered through the views
+     (for example "155724", "3C2D8A", "1D5C99", "7A5C00"). Move them into
+     NMATheme as named colors, such as referral green, research purple,
+     region blue and chair gold.
+
+2.4  Screens mix the older NavigationView with the newer NavigationStack.
+     Directory uses a large title; the other tabs use small inline titles.
+
+2.5  Directory switches regions with custom-made buttons, while
+     Notifications uses the standard iOS segmented control. Use the standard
+     control in both.
+
+2.6  Saving works differently from screen to screen:
+     - Availability toggles in Settings save the moment you flip them.
+     - Office phone needs a separate small "Save" button, which is easy to
+       miss.
+     - The edit screens use a "Done" button.
+     Make saving work the same way everywhere.
+
+
+======================================================================
+3. EASE OF USE
+======================================================================
+
+3.1  "Message" means three different things
+     The profile button says "Message Jane", but it opens a menu of Referral,
+     Mentorship and Collaboration. A referral isn't a message at all; it
+     notifies the other doctor that you will call their office. Consider
+     labeling the button "Connect" or "Reach out".
+
+3.2  The received side of pings has no actions
+     The sender sees "Pending" and "Declined", but the receiver has no way
+     to accept or decline.
+
+3.3  Referral contact isn't tappable
+     The profile says "Referrals: Call my office" without showing the number,
+     and the Notifications tab shows the phone number as plain text. Show
+     officePhone on the profile as a tap-to-call link.
+
+3.4  Unexplained dead ends
+     - If someone isn't available for anything, the Message button just
+       disappears. Say why.
+     - If you haven't set a region, the Directory still labels itself
+       "My Region".
+     - The Messages empty state says "Send a message to start a
+       conversation", but you can't start one from that tab. Point users to
+       the Directory instead.
+
+3.5  Profile completion shows a percentage with no next step
+     Make the progress bar list what's missing and link to where you fill it
+     in. It also counts a skipped NPI (saved as empty text) as complete
+     (Model/User.swift, profileCompletionPercent).
+
+3.6  Directory rows are crowded
+     Each row can show up to nine items: name, checkmark, Chair pill,
+     specialty, institution, three badges, region badge and credentials.
+     Chair status appears twice ("Chair" and "R1 Chair"). Trim each row to
+     name, credentials, specialty and one line of badges.
+
+3.7  The directory looks empty while it loads
+     "No members in your region yet" appears before the data arrives. Add a
+     loading state and pull-to-refresh.
+
+3.8  Small things
+     - Settings opens as a pop-up sheet with no Done button.
+     - Log Out happens instantly, with no confirmation.
+     - Onboarding has no way to log out if you're signed into the wrong
+       account.
+     - The ping confirmation says "Dr. Jane"; "Dr." should go with the last
+       name (PingSheetView.swift).
+     - The Sign Up "Credentials" field overlaps with the degree question
+       asked again in onboarding.
+
+
+======================================================================
+4. ACCESSIBILITY
+======================================================================
+
+4.1  The app has zero accessibility labels, so VoiceOver can't describe
+     icon-only buttons like the settings gear, the filter button or the
+     send arrow.
+
+4.2  Region and avatar badges use fixed 9-11pt text, which ignores the
+     user's text-size setting.
+
+4.3  The ping type is shown with a 10pt dot at 15% opacity, which is nearly
+     invisible (PingInboxView.swift). Color alone shouldn't carry meaning.
+
+
+======================================================================
+5. CODE STRUCTURE THAT AFFECTS DESIGN
+======================================================================
+
+5.1  UserProfileView and CurrentUserProfileView are about 200 lines of
+     copy-paste. Merge them into one shared ProfileContent(user:) view so
+     they can't drift apart.
+
+5.2  Your own profile shows initials only, even though Directory rows load
+     real profile photos.
+
+5.3  The Notifications tab builds its own PingInboxViewModel, separate from
+     the one MainTabView uses for the badge, so the app listens to the same
+     data twice.
+
+5.4  About 1,500 lines of unused code:
+     - FeedView.swift
+     - ExploreView.swift
+     - Hamburger.swift
+     - "Messages .swift"
+     - ContentViewModel
+     - the empty "Directory " folder (with a trailing space)
+     - unused color constants (backgroundColor, customBackgroundColor,
+       backgroundF)
+
+
+======================================================================
+SUGGESTED STARTING POINT
+======================================================================
+
+Fix everything in section 1, then unify the theme (section 2). Together
+that's roughly a day of work and fixes what users would notice most.

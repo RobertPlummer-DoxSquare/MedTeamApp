@@ -21,6 +21,8 @@ class ThreadViewModel: ObservableObject {
 
     var isRequester: Bool { conversation.isRequester(currentUserId) }
 
+    var otherParticipantId: String? { conversation.otherParticipantId(for: currentUserId) }
+
     /// Receiver of a pending request sees Accept / Decline.
     var canRespond: Bool { conversation.status == .pending && !isRequester }
 

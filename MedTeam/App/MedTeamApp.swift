@@ -18,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
   }
 }
 
+
 @main
 struct MedTeamApp: App {
     @StateObject var sessionViewModel = SessionViewModel()

@@ -1,0 +1,89 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/bobbyplummer/Documents/MedTeam"
+    ],
+    "blockReadsOutsideWorkingDirectories": true,
+    "allow": [
+      "Read(//Users/bobbyplummer/Documents/MedTeam/**)",
+      "Edit(//Users/bobbyplummer/Documents/MedTeam/**)",
+      "Bash(xcodebuild *)",
+      "Bash(xcrun *)",
+      "Bash(swift *)",
+      "Bash(git *)"
+    ],
+    "deny": [
+      "Read(~/Desktop/**)",
+      "Edit(~/Desktop/**)",
+      "Read(~/Downloads/**)",
+      "Edit(~/Downloads/**)",
+      "Read(~/Documents/Arduino/**)",
+      "Edit(~/Documents/Arduino/**)",
+      "Read(~/Documents/DocChat/**)",
+      "Edit(~/Documents/DocChat/**)",
+      "Read(~/Documents/doc chat/**)",
+      "Edit(~/Documents/doc chat/**)",
+      "Read(~/Documents/MedMindRM/**)",
+      "Edit(~/Documents/MedMindRM/**)",
+      "Read(~/Documents/OnlyDocs/**)",
+      "Edit(~/Documents/OnlyDocs/**)",
+      "Read(~/Documents/QtDesignStudio/**)",
+      "Edit(~/Documents/QtDesignStudio/**)",
+      "Read(~/Documents/*.pdf)",
+      "Edit(~/Documents/*.pdf)",
+      "Read(~/Library/Mobile Documents/**)",
+      "Edit(~/Library/Mobile Documents/**)",
+      "Read(~/iCloud Drive (Archive)/**)",
+      "Edit(~/iCloud Drive (Archive)/**)",
+      "Read(~/Dropbox/**)",
+      "Edit(~/Dropbox/**)",
+      "Read(~/Pictures/**)",
+      "Edit(~/Pictures/**)",
+      "Read(~/Movies/**)",
+      "Edit(~/Movies/**)",
+      "Read(~/Music/**)",
+      "Edit(~/Music/**)",
+      "Read(~/Library/Mail/**)",
+      "Edit(~/Library/Mail/**)",
+      "Read(~/Library/Messages/**)",
+      "Edit(~/Library/Messages/**)",
+      "Read(~/Library/Keychains/**)",
+      "Edit(~/Library/Keychains/**)",
+      "Read(~/.ssh/**)",
+      "Edit(~/.ssh/**)",
+      "Read(~/.config/**)",
+      "Edit(~/.config/**)",
+      "Read(~/.zsh_history)",
+      "Read(~/.bash_history)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": [
+      "xcodebuild *",
+      "xcrun *"
+    ],
+    "filesystem": {
+      "denyRead": [
+        "~/"
+      ],
+      "allowRead": [
+        "/Users/bobbyplummer/Documents/MedTeam",
+        "/Applications/Xcode.app",
+        "~/Library/Developer",
+        "~/Library/Caches/org.swift.swiftpm",
+        "~/Library/org.swift.swiftpm",
+        "~/.swiftpm",
+        "~/.gitconfig"
+      ],
+      "allowWrite": [
+        "/Users/bobbyplummer/Documents/MedTeam",
+        "~/Library/Developer",
+        "~/Library/Caches/org.swift.swiftpm",
+        "~/Library/org.swift.swiftpm",
+        "~/.swiftpm"
+      ]
+    }
+  }
+}

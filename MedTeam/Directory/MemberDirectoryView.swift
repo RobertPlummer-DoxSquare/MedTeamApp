@@ -24,29 +24,14 @@ struct DirectoryFilters {
 struct MemberDirectoryView: View {
     @StateObject private var viewModel = MemberDirectoryViewModel()
     @State private var searchText = ""
-    @State private var showAllMembers = false
     @State private var showFilters = false
     @State private var filters = DirectoryFilters()
-
-    private var currentUserRegion: NMARegion? {
-        UserService.shared.currentUser?.nmaRegion
-    }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.nmaBackground.ignoresSafeArea()
                 VStack(spacing: 0) {
-                    if let region = currentUserRegion, !showAllMembers {
-                        RegionMapHeaderView(region: region)
-                            .zIndex(1)
-                        Divider().foregroundColor(Color.nmaBorder).padding(.top, 20)
-                    } else {
-                        Divider().foregroundColor(Color.nmaBorder)
-                    }
-
-                    scopeToggle
-
                     Divider().foregroundColor(Color.nmaBorder)
 
                     if filteredUsers.isEmpty {
@@ -82,22 +67,9 @@ struct MemberDirectoryView: View {
                 }
             }
             .sheet(isPresented: $showFilters) {
-                DirectoryFilterSheet(filters: $filters, showAllMembers: showAllMembers)
+                DirectoryFilterSheet(filters: $filters)
             }
         }
-    }
-
-    // MARK: - Scope Toggle
-
-    private var scopeToggle: some View {
-        Picker("Show", selection: $showAllMembers.animation()) {
-            Text("My Region").tag(false)
-            Text("All NMA Members").tag(true)
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.nmaBackground)
     }
 
     // MARK: - Filtered Users
@@ -105,14 +77,11 @@ struct MemberDirectoryView: View {
     var filteredUsers: [User] {
         var users = viewModel.users
 
-        // Exclude current user
-        if let uid = UserService.shared.currentUser?.id {
-            users = users.filter { $0.id != uid }
-        }
-
-        // Region scope
-        if !showAllMembers, let region = currentUserRegion {
-            users = users.filter { $0.nmaRegion == region }
+        // Exclude current user, people you blocked, and people who blocked you
+        if let me = UserService.shared.currentUser {
+            users = users.filter {
+                $0.id != me.id && !me.blockedUserIds.contains($0.id) && !$0.blockedUserIds.contains(me.id)
+            }
         }
 
         // Search
@@ -139,7 +108,7 @@ struct MemberDirectoryView: View {
         VStack(spacing: 10) {
             Image(systemName: "person.2")
                 .font(.largeTitle).foregroundColor(Color.nmaSecondary)
-            Text(showAllMembers ? "No members found" : "No members in your region yet")
+            Text("No members found")
                 .font(.subheadline).foregroundColor(Color.nmaSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -200,6 +169,9 @@ struct MemberRowView: View {
                         .foregroundColor(.nmaPrimary)
                     if user.isVerified {
                         VerificationBadge(memberType: user.memberType, compact: true)
+                    }
+                    if user.nmaRegion != nil {
+                        NMAMemberBadge(compact: true)
                     }
                     if user.isChairperson {
                         Text("Chair")
@@ -314,7 +286,6 @@ struct MemberRowView: View {
 
 struct DirectoryFilterSheet: View {
     @Binding var filters: DirectoryFilters
-    let showAllMembers: Bool
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -327,16 +298,14 @@ struct DirectoryFilterSheet: View {
                     }
                     .pickerStyle(.menu)
                 }
-                if showAllMembers {
-                    Section("Region") {
-                        Picker("Region", selection: $filters.region) {
-                            Text("Any").tag(NMARegion?.none)
-                            ForEach(NMARegion.allCases, id: \.self) {
-                                Text($0.displayName).tag(NMARegion?.some($0))
-                            }
+                Section("Region") {
+                    Picker("Region", selection: $filters.region) {
+                        Text("Any").tag(NMARegion?.none)
+                        ForEach(NMARegion.allCases, id: \.self) {
+                            Text($0.displayName).tag(NMARegion?.some($0))
                         }
-                        .pickerStyle(.menu)
                     }
+                    .pickerStyle(.menu)
                 }
                 Section("Availability") {
                     Toggle("Open to research collaboration", isOn: $filters.openToResearch)

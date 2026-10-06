@@ -24,8 +24,13 @@ struct ProfileContent: View {
                 .padding(.top, 20)
 
             VStack(spacing: 4) {
-                Text(user.fullname)
-                    .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
+                HStack(spacing: 6) {
+                    Text(user.fullname)
+                        .font(.title3).fontWeight(.semibold).foregroundColor(Color.nmaPrimary)
+                    if user.nmaRegion != nil {
+                        NMAMemberBadge()
+                    }
+                }
                 if !user.credentials.isEmpty {
                     Text(user.credentials)
                         .font(.subheadline).foregroundColor(Color.nmaSecondary)
@@ -85,10 +90,6 @@ struct ProfileContent: View {
                         }
                         Text("Chair: \(region.chairName)")
                             .font(.caption).foregroundColor(Color.nmaSecondary)
-                        if region.nextMeeting != "TBD" {
-                            Text("Next meeting: \(region.nextMeeting)")
-                                .font(.caption).foregroundColor(Color.nmaSecondary)
-                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 24)
@@ -230,6 +231,22 @@ struct VerificationBadge: View {
     }
 }
 
+// MARK: - NMA Member Badge
+
+/// Shown next to a member's name once they've picked their NMA region.
+struct NMAMemberBadge: View {
+    var compact = false
+
+    var body: some View {
+        Text("NMA Member")
+            .font(compact ? .caption2 : .caption).fontWeight(.semibold)
+            .foregroundColor(Color.regionBlue)
+            .padding(.horizontal, compact ? 5 : 8).padding(.vertical, compact ? 2 : 4)
+            .background(Color.regionBlueBackground)
+            .cornerRadius(compact ? 4 : 6)
+    }
+}
+
 // MARK: - Avatar
 
 /// Profile photo when available, otherwise initials.
@@ -274,6 +291,10 @@ struct ProfileAvatar: View {
 struct UserProfileView: View {
     let user: User
     @State private var showConnectSheet = false
+    @ObservedObject private var userService = UserService.shared
+    @Environment(\.dismiss) private var dismiss
+
+    private var isBlocked: Bool { userService.currentUser?.blockedUserIds.contains(user.id) ?? false }
 
     private var canConnect: Bool { user.isMentor || user.isOpenToCollaboration }
 
@@ -295,6 +316,13 @@ struct UserProfileView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if user.id != userService.currentUser?.id {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    SafetyMenu(userId: user.id, userName: user.fullname) { dismiss() }
+                }
+            }
+        }
         .sheet(isPresented: $showConnectSheet) {
             ConnectSheetView(targetUser: user)
         }
@@ -302,6 +330,22 @@ struct UserProfileView: View {
 
     @ViewBuilder
     private var actions: some View {
+        VStack(spacing: 10) {
+            if isBlocked {
+                Text("You blocked this member")
+                    .font(.subheadline).fontWeight(.medium)
+                    .frame(maxWidth: .infinity).frame(height: 48)
+                    .background(Color.nmaSubtle)
+                    .foregroundColor(Color.nmaSecondary)
+                    .cornerRadius(12)
+            } else {
+                availableActions
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var availableActions: some View {
         VStack(spacing: 10) {
             if canConnect {
                 Button { showConnectSheet = true } label: {

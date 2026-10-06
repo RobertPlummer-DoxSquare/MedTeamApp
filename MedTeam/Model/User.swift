@@ -58,6 +58,9 @@ struct User: Identifiable, Codable, Hashable {
     var languagesSpoken: [String]
     var locationRegion: String?
 
+    // MARK: - Safety
+    var blockedUserIds: [String]
+
     // MARK: - Computed (not stored in Firestore)
 
     var isVerified: Bool {
@@ -109,6 +112,7 @@ struct User: Identifiable, Codable, Hashable {
         case isMentor, languagesSpoken, locationRegion
         case npiStatus
         case memberType, onboardingCompleted, schoolEmail, studentVerified
+        case blockedUserIds
     }
 
     // MARK: - Custom Decoding
@@ -154,6 +158,7 @@ struct User: Identifiable, Codable, Hashable {
         isMentor                = try c.decodeIfPresent(Bool.self, forKey: .isMentor) ?? false
         languagesSpoken         = try c.decodeIfPresent([String].self, forKey: .languagesSpoken) ?? []
         locationRegion          = try c.decodeIfPresent(String.self, forKey: .locationRegion)
+        blockedUserIds          = try c.decodeIfPresent([String].self, forKey: .blockedUserIds) ?? []
     }
 
     // MARK: - Base init
@@ -175,6 +180,7 @@ struct User: Identifiable, Codable, Hashable {
         self.isOpenToCollaboration = false
         self.isMentor = false
         self.languagesSpoken = []
+        self.blockedUserIds = []
     }
 }
 

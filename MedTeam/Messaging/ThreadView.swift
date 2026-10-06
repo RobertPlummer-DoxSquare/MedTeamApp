@@ -3,6 +3,7 @@ import SwiftUI
 struct ThreadView: View {
     @StateObject private var viewModel: ThreadViewModel
     @State private var showProposalForm = false
+    @Environment(\.dismiss) private var dismiss
     @FocusState private var inputFocused: Bool
 
     init(conversation: Conversation) {
@@ -77,6 +78,15 @@ struct ThreadView: View {
                     Text(viewModel.conversation.type.displayName)
                         .font(.caption2)
                         .foregroundColor(viewModel.conversation.type.accentColor)
+                }
+            }
+            if let otherId = viewModel.otherParticipantId {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    SafetyMenu(
+                        userId: otherId,
+                        userName: viewModel.conversation.otherParticipantName ?? "this member",
+                        conversationId: viewModel.conversation.id
+                    ) { dismiss() }
                 }
             }
         }

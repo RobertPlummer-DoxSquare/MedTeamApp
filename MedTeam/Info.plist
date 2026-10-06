@@ -18,6 +18,10 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 
+	<!-- Export compliance: only Apple's built-in encryption (HTTPS) -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<!-- UI -->
 	<key>UIApplicationSceneManifest</key>
 	<dict>
